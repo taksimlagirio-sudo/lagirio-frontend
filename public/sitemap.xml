@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- Ana sayfa - Çok dilli -->
+  <url>
+    <loc>https://lagirio.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://lagirio.com/en"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://lagirio.com/ar"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://lagirio.com/ru"/>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Daireler sayfası -->
+  <url>
+    <loc>https://lagirio.com/rentals</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Turlar -->
+  <url>
+    <loc>https://lagirio.com/rentals#tours</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Yasal sayfalar -->
+  <url>
+    <loc>https://lagirio.com/legal/privacy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>

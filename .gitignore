@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+.env.local
+echo "*.exe" >> .gitignore
+echo "*.msi" >> .gitignore
+echo "*.dmg" >> .gitignore

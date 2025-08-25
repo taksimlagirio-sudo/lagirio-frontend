@@ -1,0 +1,54 @@
+/* src/styles/print.css - Yazdırma için özel stiller */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+  }
+  
+  .legal-document {
+    max-width: 21cm;
+    margin: 0 auto;
+    padding: 2cm;
+  }
+  
+  .legal-header {
+    border-bottom: 3px solid #2a7f3e;
+    padding-bottom: 1cm;
+    margin-bottom: 1cm;
+  }
+  
+  h1 {
+    color: #2a7f3e !important;
+    font-size: 24pt !important;
+  }
+  
+  h2 {
+    color: #2a7f3e !important;
+    font-size: 18pt !important;
+    margin-top: 0.5cm !important;
+  }
+  
+  h3 {
+    color: #374151 !important;
+    font-size: 14pt !important;
+  }
+  
+  p {
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+    text-align: justify;
+  }
+  
+  ul li {
+    font-size: 11pt !important;
+    margin-bottom: 0.3cm !important;
+  }
+  
+  .page-break {
+    page-break-after: always;
+  }
+}
