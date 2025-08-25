@@ -479,10 +479,6 @@ const HomePage: React.FC<HomePageProps> = ({
                 <span className="text-[#f5e6d3] block">Home Sweet </span>
                 <span className="text-[#ff9800]">lagirio.</span>
               </h2>
-              
-              <p className="text-base text-white/90 mb-8 drop-shadow-lg px-4">
-                {t.tagline || "Lagirio ile her yerde eviniz."}
-              </p>
 
               {/* Pull Left and Right - DAHA AŞAĞI VE DAHA KÜÇÜK */}
               <div className="bg-black/15 backdrop-blur-md rounded-full shadow-md px-4 py-1 inline-flex items-center gap-2 mt-8">
