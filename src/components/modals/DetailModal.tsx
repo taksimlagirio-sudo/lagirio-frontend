@@ -521,7 +521,13 @@ const DetailModal: React.FC<DetailModalProps> = ({
               
               {/* Book Now Button */}
               <button
-                onClick={() => onDetailNavigation(true)}
+                onClick={() => {
+                  onDetailNavigation(true);
+                  // Modal kapandıktan sonra scroll
+                  setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }, 300);
+                }}
                 className="bg-[#0a2e23] text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2"
               >
                 <Calendar size={16} />
@@ -814,7 +820,12 @@ const DetailModal: React.FC<DetailModalProps> = ({
 
                 <div className="mt-6 flex justify-center">
                   <button
-                    onClick={() => onDetailNavigation(true)}
+                    onClick={() => {
+                      onDetailNavigation(true);
+                      setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }, 300);
+                    }}
                     className="w-full max-w-sm bg-[#0a2e23] text-white px-6 py-3 rounded-xl hover:bg-[#0f4a3a] transition-colors font-medium flex items-center justify-center space-x-2"
                   >
                     <Calendar size={20} />

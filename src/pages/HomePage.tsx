@@ -373,7 +373,7 @@ const HomePage: React.FC<HomePageProps> = ({
             transform: `translateX(${-slideProgress * 100}%)`,
             transition: isDragging ? 'none' : 'transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1)'
           }}
-        >
+      >
           {/* Hero Section - RentalsPage stili */}
           <section className="relative min-h-[60vh] flex items-center justify-center">
             {/* Background Images */}
@@ -479,14 +479,15 @@ const HomePage: React.FC<HomePageProps> = ({
                 <span className="text-[#f5e6d3] block">Home Sweet </span>
                 <span className="text-[#ff9800]">lagirio.</span>
               </h2>
+              
 
-              {/* Pull Left and Right - DAHA AŞAĞI VE DAHA KÜÇÜK */}
-              <div className="bg-black/15 backdrop-blur-md rounded-full shadow-md px-4 py-1 inline-flex items-center gap-2 mt-8">
-                <span className="text-[#0a2e23]/60 text-[10px]">▶</span>
-                <span className="text-[9px] text-white/80 font-medium tracking-wide uppercase">
+              {/* Pull Left and Right - DAHA AŞAĞI VE NORMAL BOYUT */}
+              <div className="bg-black/20 backdrop-blur-md rounded-full shadow-lg px-5 py-1.5 inline-flex items-center gap-2 mt-12">
+                <span className="text-[#0a2e23]/70 text-xs">▶</span>
+                <span className="text-[11px] text-white/90 font-medium tracking-wider uppercase">
                   {t.pullLeftAndRightmb || 'Sola ve sağa çekerek keşfet'}
                 </span>
-                <span className="text-[#ff9800]/60 text-[10px]">◀</span>
+                <span className="text-[#ff9800]/70 text-xs">◀</span>
               </div>
             </div>
           </section>
@@ -582,23 +583,29 @@ const HomePage: React.FC<HomePageProps> = ({
                   ))}
                 </div>
 
-                {/* See All Button - OTOMATİK SCROLL İLE */}
+                {/* See All Button - SAYFA ÜSTÜNDEN SCROLL */}
                 <div className="text-center mt-6">
                   <button
                     onClick={() => {
                       // RentalsPage'e geç
                       setCurrentView("rentals");
                       
-                      // Biraz bekle ve apartments section'a scroll et
+                      // Önce sayfanın en üstüne git
                       setTimeout(() => {
-                        const apartmentsSection = document.getElementById('apartments-section');
-                        if (apartmentsSection) {
-                          // Mobile için daha yumuşak scroll
-                          const yOffset = -80; // Header yüksekliği için offset
-                          const y = apartmentsSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                          window.scrollTo({ top: y, behavior: 'smooth' });
-                        }
-                      }, 600); // RentalsPage'in yüklenmesi için biraz daha fazla bekleme
+                        // Sayfanın en üstüne git
+                        window.scrollTo(0, 0);
+                        
+                        // Sonra apartments section'a smooth scroll et
+                        setTimeout(() => {
+                          const apartmentsSection = document.getElementById('apartments-section');
+                          if (apartmentsSection) {
+                            apartmentsSection.scrollIntoView({ 
+                              behavior: 'smooth', 
+                              block: 'start' 
+                            });
+                          }
+                        }, 100); // Önce üste gitmesi için kısa bekleme
+                      }, 500); // RentalsPage'in yüklenmesi için bekleme
                     }}
                     className="bg-[#ff9800] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#f57c00] transition-colors inline-flex items-center gap-2 active:scale-95"
                   >

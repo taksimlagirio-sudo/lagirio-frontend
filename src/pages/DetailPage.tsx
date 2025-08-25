@@ -579,7 +579,12 @@ const DetailPage: React.FC<DetailPageProps> = ({
             </nav>
             
             <button
-              onClick={() => navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`)}
+              onClick={() => {
+                navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
+              }}
               className="bg-[#0a2e23] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0a2e23]/90 transition-all transform hover:scale-105"
             >
               {t.makeReservation || 'Hemen Rezervasyon Yap'}
@@ -1088,7 +1093,13 @@ const DetailPage: React.FC<DetailPageProps> = ({
 
                 <div className="flex flex-col items-center">
                   <button
-                    onClick={() => navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`)}
+                    onClick={() => {
+                      navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
+                      // Navigation tamamlandıktan sonra scroll
+                      setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }, 100);
+                    }}
                     className="w-full bg-[#0a2e23] text-white px-6 py-3 rounded-xl hover:bg-[#0f4a3a] transition-colors font-medium flex items-center justify-center space-x-2"
                   >
                     <Calendar size={20} />
@@ -1194,7 +1205,12 @@ const DetailPage: React.FC<DetailPageProps> = ({
           </div>
           
           <button
-            onClick={() => navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`)}
+            onClick={() => {
+              navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }, 100);
+            }}
             className="bg-[#0a2e23] text-white px-6 py-3 rounded-xl font-medium"
           >
             {t.bookNow || 'Rezervasyon'}

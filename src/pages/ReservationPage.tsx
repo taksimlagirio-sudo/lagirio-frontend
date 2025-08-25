@@ -283,6 +283,12 @@ const ReservationPage: React.FC<ReservationPageProps> = ({
   }, [reservationData.adults, reservationData.childrenAgeGroups.above7, 
       reservationData.childrenAgeGroups.between2And7, 
       reservationData.childrenAgeGroups.under2, selectedItem]);
+  
+  // ReservationPage component'inin başına, diğer useEffect'lerden sonra ekleyin:
+  useEffect(() => {
+    // Sayfa yüklendiğinde en üste scroll
+    window.scrollTo(0, 0);
+  }, []); // Boş dependency array ile sadece component mount olduğunda çalışır
 
   // useEffect'e ekleyin
   useEffect(() => {
