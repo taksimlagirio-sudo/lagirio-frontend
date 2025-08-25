@@ -496,7 +496,7 @@ const HomePage: React.FC<HomePageProps> = ({
           <section className="px-6 py-8 bg-gradient-to-b from-gray-50 to-white featured-area">
             <div className="text-center mb-6">
               <h3 className="text-xl font-bold text-[#0a2e23] mb-2">
-                {t.featuredApartments || 'Öne Çıkan Dairelerimiz'}
+                {t.featured || 'Öne Çıkan Dairelerimiz'}
               </h3>
               <p className="text-sm text-gray-600">
                 {t.featuredSubtitle || 'En çok tercih edilen konaklama seçeneklerimiz'}

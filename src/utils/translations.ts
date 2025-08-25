@@ -36,7 +36,8 @@ export const translations = {
     ownersDesc: "Evinizi değerlendirin",
     ourApartments: "Dairelerimiz",
     ourTours: "Turlarımız",
-    featured: "Öne Çıkanlar",
+    featured: "Öne Çıkan Dairelerimiz",
+    featuredSubtitle: "En çok tercih edilen konaklama seçeneklerimiz",
     pullLeftAndRight: "Sola ve sağa çekerek keşfet",
     pullLeftAndRightmb: "Sola ve sağa çekerek keşfet",
 
@@ -826,7 +827,8 @@ export const translations = {
     ownersDesc: "Monetize your property",
     ourApartments: "Our Apartments",
     ourTours: "Our Tours",
-    featured: "Featured",
+    featured: "Our Featured Apartments",
+    featuredSubtitle: "Our most popular accommodation options",
     pullLeftAndRight: "Pull left and rıght to browse",
     pullLeftAndRightmb: "Pull left and rıght to browse",
 
@@ -1635,7 +1637,8 @@ export const translations = {
     ownersDesc: "استثمر عقارك",
     ourApartments: "شققنا",
     ourTours: "جولاتنا",
-    featured: "المميزة",
+    featured: "شققنا المميزة",
+    featuredSubtitle: "خيارات الإقامة الأكثر شعبية لدينا",
     pullLeftAndRight: "اسحب لليسار واليمين للتصفح",
     pullLeftAndRightmb: "اسحب لليسار واليمين للتصفح",
 
@@ -2434,7 +2437,8 @@ export const translations = {
     ownersDesc: "Монетизируйте вашу недвижимость",
     ourApartments: "Наши апартаменты",
     ourTours: "Наши туры",
-    featured: "Избранное",
+    featured: "Наши лучшие квартиры",
+    featuredSubtitle: "Наши самые популярные варианты проживания",
     pullLeftAndRight: "Проведите влево и вправо, чтобы просмотреть.",
     pullLeftAndRightmb: "Проведите влево и вправо, чтобы просмотреть.",
     
