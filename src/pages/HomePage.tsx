@@ -473,7 +473,7 @@ const HomePage: React.FC<HomePageProps> = ({
               </div>
             </div>
 
-            {/* Logo */}
+            {/* Logo ve Pull Left and Right - GÜNCELLENDİ */}
             <div className="relative z-10 px-4 py-12 w-full text-center">
               <h2 className="text-4xl font-bold mb-4 drop-shadow-lg">
                 <span className="text-[#f5e6d3] block">Home Sweet </span>
@@ -484,13 +484,13 @@ const HomePage: React.FC<HomePageProps> = ({
                 {t.tagline || "Lagirio ile her yerde eviniz."}
               </p>
 
-              {/* Pull Left and Right Info */}
-              <div className="bg-black/20 backdrop-blur-lg rounded-full shadow-lg px-6 py-2 inline-flex items-center gap-3">
-                <span className="text-[#0a2e23]/80">▶</span>
-                <span className="text-xs text-white font-medium tracking-wider uppercase">
+              {/* Pull Left and Right - DAHA AŞAĞI VE DAHA KÜÇÜK */}
+              <div className="bg-black/15 backdrop-blur-md rounded-full shadow-md px-4 py-1 inline-flex items-center gap-2 mt-8">
+                <span className="text-[#0a2e23]/60 text-[10px]">▶</span>
+                <span className="text-[9px] text-white/80 font-medium tracking-wide uppercase">
                   {t.pullLeftAndRightmb || 'Sola ve sağa çekerek keşfet'}
                 </span>
-                <span className="text-[#ff9800]/80">◀</span>
+                <span className="text-[#ff9800]/60 text-[10px]">◀</span>
               </div>
             </div>
           </section>
@@ -586,14 +586,25 @@ const HomePage: React.FC<HomePageProps> = ({
                   ))}
                 </div>
 
-                {/* See All Button */}
+                {/* See All Button - OTOMATİK SCROLL İLE */}
                 <div className="text-center mt-6">
                   <button
                     onClick={() => {
-                      setShouldScrollToApartments(true);
+                      // RentalsPage'e geç
                       setCurrentView("rentals");
+                      
+                      // Biraz bekle ve apartments section'a scroll et
+                      setTimeout(() => {
+                        const apartmentsSection = document.getElementById('apartments-section');
+                        if (apartmentsSection) {
+                          // Mobile için daha yumuşak scroll
+                          const yOffset = -80; // Header yüksekliği için offset
+                          const y = apartmentsSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                          window.scrollTo({ top: y, behavior: 'smooth' });
+                        }
+                      }, 600); // RentalsPage'in yüklenmesi için biraz daha fazla bekleme
                     }}
-                    className="bg-[#ff9800] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#f57c00] transition-colors inline-flex items-center gap-2"
+                    className="bg-[#ff9800] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#f57c00] transition-colors inline-flex items-center gap-2 active:scale-95"
                   >
                     {t.seeAllApartments || 'Tüm Daireleri Gör'}
                     <ChevronRight size={18} />
