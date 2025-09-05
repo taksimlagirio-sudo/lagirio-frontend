@@ -963,8 +963,10 @@ const handleLogin = async () => {
   };
 
   // YENİ - DetailWithSEO component
-  const DetailWithSEO = ({ currentLang, changeLanguage, ...props }: any) => {
+  // YENİ - DetailWithSEO component - Props kullanılan versiyon
+  const DetailWithSEO = (props: any) => {
     const { type, id } = useParams();
+    const { currentLang, changeLanguage, ...restProps } = props;
     
     return (
       <>
@@ -973,7 +975,7 @@ const handleLogin = async () => {
           id={id} 
           currentLang={currentLang} 
         />
-        <DetailPageWrapper />
+        <DetailPageWrapper {...restProps} />
       </>
     );
   };
