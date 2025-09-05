@@ -1,4 +1,4 @@
-/*    /index.html   200
 /sitemap.xml  https://lagirio-api.onrender.com/sitemap.xml  200
 /robots.txt   https://lagirio-api.onrender.com/robots.txt   200
 /api/*        https://lagirio-api.onrender.com/api/:splat    200
+/*            /index.html                                   200
