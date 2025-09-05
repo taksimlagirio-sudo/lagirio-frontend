@@ -8,6 +8,9 @@ import { countryPhoneCodes } from './utils/countryPhoneCodes';
 import Footer from './components/Footer'; // Footer import - KALACAK
 import ForgotPasswordModal from './components/modals/ForgotPasswordModal';
 import WhatsAppRedirectModal from './components/modals/WhatsAppRedirectModal';
+import { HelmetProvider } from 'react-helmet-async';
+import SEOHead from './components/SEOHead'; // YENİ - SEO Component
+
 
 
 
@@ -137,23 +140,60 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
+
+
 
 // App içeriği - tüm state ve logic burada
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
+  // YENİ - URL'den dili al
+  const getLanguageFromURL = () => {
+    const path = window.location.pathname;
+    if (path.startsWith('/en')) return 'en';
+    if (path.startsWith('/ar')) return 'ar';
+    if (path.startsWith('/ru')) return 'ru';
+    return 'tr';
+  };
+  
   // Language - localStorage'dan al (mobile için önemli)
   const [currentLang, setCurrentLang] = useState(() => {
-    return localStorage.getItem('preferredLanguage') || 'tr';
+    const urlLang = getLanguageFromURL();
+    const storedLang = localStorage.getItem('preferredLanguage');
+    
+    // URL'deki dil öncelikli
+    if (urlLang !== 'tr') {
+      return urlLang;
+    }
+    
+    return storedLang || 'tr';
   });
+
+  // YENİ - Dil değiştirme fonksiyonu (URL'li)
+  const changeLanguage = (newLang: string) => {
+    const currentPath = window.location.pathname;
+    // Mevcut dil prefix'ini temizle
+    const pathWithoutLang = currentPath.replace(/^\/(en|ar|ru)/, '');
+    
+    if (newLang === 'tr') {
+      navigate(pathWithoutLang || '/');
+    } else {
+      navigate(`/${newLang}${pathWithoutLang}`);
+    }
+    
+    setCurrentLang(newLang);
+    localStorage.setItem('preferredLanguage', newLang);
+  };
 
   // Language değiştiğinde localStorage'a kaydet
   useEffect(() => {
@@ -803,7 +843,7 @@ const handleLogin = async () => {
           selectedItem={selectedItem}
           selectedItemType={selectedItemType}
           currentLang={currentLang}
-          setCurrentLang={setCurrentLang}
+          setCurrentLang={changeLanguage}
           translations={translations}
           setShowLoginModal={() => openModal('login')}
           setCurrentView={setCurrentView}
@@ -815,121 +855,191 @@ const handleLogin = async () => {
     return null;
   };
 
+  // YENİ - LanguageRoutes component
+  const LanguageRoutes = ({ currentLang, changeLanguage, ...props }: any) => {
+    return (
+      <Routes>
+        {/* Ana Sayfa */}
+        <Route path="/" element={
+          <>
+            <SEOHead type="home" currentLang={currentLang} />
+            <HomePage
+              {...props}
+              currentLang={currentLang}
+              setCurrentLang={changeLanguage}
+            />
+          </>
+        } />
+        
+        {/* Rentals Sayfası */}
+        <Route path="/rentals" element={
+          <>
+            <SEOHead type="rentals" currentLang={currentLang} />
+            <RentalsPage
+              {...props}
+              currentLang={currentLang}
+              setCurrentLang={changeLanguage}
+            />
+          </>
+        } />
+        
+        {/* Owners Sayfası */}
+        <Route path="/owners" element={
+          <>
+            <SEOHead type="owners" currentLang={currentLang} />
+            <OwnersPage
+              {...props}
+              currentLang={currentLang}
+              setCurrentLang={changeLanguage}
+            />
+          </>
+        } />
+        
+        {/* Detail Sayfası */}
+        <Route path="/detail/:type/:id" element={
+          <DetailWithSEO 
+            {...props}
+            currentLang={currentLang}
+            changeLanguage={changeLanguage}
+          />
+        } />
+        
+        {/* Diğer route'lar */}
+        <Route path="/reservation/:type/:id" element={
+          <ReservationPage
+            {...props}
+            currentLang={currentLang}
+            setCurrentLang={changeLanguage}
+          />
+        } />
+        
+        <Route path="/legal/:type" element={
+          <LegalPage 
+            currentLang={currentLang}
+            translations={translations}
+          />
+        } />
+        
+        {/* Protected Routes */}
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <UserProfile
+              {...props}
+              currentLang={currentLang}
+              setCurrentLang={changeLanguage}
+            />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/reservations" element={
+          <ProtectedRoute>
+            <UserReservations
+              {...props}
+              currentLang={currentLang}
+              setCurrentLang={changeLanguage}
+            />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/favorites" element={
+          <ProtectedRoute>
+            <UserFavorites
+              {...props}
+              currentLang={currentLang}
+              setCurrentLang={changeLanguage}
+            />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/reset-password" element={
+          <ResetPasswordPage />
+        } />
+        
+        <Route path="/auth/callback" element={
+          <AuthCallback />
+        } />
+      </Routes>
+    );
+  };
+
+  // YENİ - DetailWithSEO component
+  const DetailWithSEO = ({ currentLang, changeLanguage, ...props }: any) => {
+    const { type, id } = useParams();
+    
+    return (
+      <>
+        <SEOHead 
+          type={type === 'apartments' ? 'apartment' : 'tour'} 
+          id={id} 
+          currentLang={currentLang} 
+        />
+        <DetailPageWrapper />
+      </>
+    );
+  };
+
+  // YENİ - allProps objesi
+  const allProps = {
+    apartments,
+    tours,
+    siteImages,
+    globalSearchParams,
+    setGlobalSearchParams,
+    fetchApartments,
+    fetchTours,
+    translations,
+    setCurrentView,
+    setShowLoginModal: () => openModal('login'),
+    handleOpenModal,
+    selectedItem,
+    selectedItemType,
+    modalItem,
+    modalItemType,
+    formData,
+    setFormData,
+    addToast
+  };
+
     return (
       <div className="min-h-screen flex flex-col">
         {/* Ana içerik wrapper */}
         <main className="flex-grow">
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route path="/" element={
-                <HomePage
-                  apartments={apartments} 
-                  globalSearchParams={globalSearchParams}
-                  setGlobalSearchParams={setGlobalSearchParams}
-                  fetchApartments={fetchApartments}
-                  siteImages={siteImages}
-                  currentLang={currentLang}
-                  setCurrentLang={setCurrentLang}
-                  translations={translations}
-                  setCurrentView={setCurrentView}
-                  setShowLoginModal={() => openModal('login')}
-                />
-              } />
-
-              <Route path="/reset-password" element={
-                <ResetPasswordPage />
-              } />
-
-              <Route path="/legal/:type" element={
-                <LegalPage 
-                  currentLang={currentLang}
-                  translations={translations}
-                />
-              } />
-
-              <Route path="/auth/callback" element={
-                <Suspense fallback={<PageLoader />}>
-                  <AuthCallback />
-                </Suspense>
-              } />
-              
-              <Route path="/rentals" element={
-                <RentalsPage
-                  apartments={apartments}
-                  tours={tours}
-                  siteImages={siteImages}
-                  currentLang={currentLang}
-                  setCurrentLang={setCurrentLang}
-                  translations={translations}
-                  setShowLoginModal={() => openModal('login')}
-                  setCurrentView={setCurrentView}
-                  handleOpenModal={handleOpenModal}
-                  fetchApartments={fetchApartments}
-                  globalSearchParams={globalSearchParams}
-                  setGlobalSearchParams={setGlobalSearchParams}
-                />
-              } />
-
-              <Route path="/reservation/:type/:id" element={
-                <ReservationPage
-                  currentLang={currentLang}
-                  setCurrentLang={setCurrentLang}
-                  translations={translations}
-                  setShowLoginModal={() => openModal('login')}
-                  setCurrentView={setCurrentView}
-                  apartments={apartments}
-                  tours={tours}
-                  globalSearchParams={globalSearchParams}
+              {/* Türkçe (default) Routes */}
+              <Route path="/*" element={
+                <LanguageRoutes 
+                  currentLang="tr" 
+                  changeLanguage={changeLanguage}
+                  {...allProps}
                 />
               } />
               
-              <Route path="/owners" element={
-                <OwnersPage
-                  currentLang={currentLang}
-                  setCurrentLang={setCurrentLang}
-                  translations={translations}
-                  setShowLoginModal={() => openModal('login')}
-                  setCurrentView={setCurrentView}
+              {/* İngilizce Routes */}
+              <Route path="/en/*" element={
+                <LanguageRoutes 
+                  currentLang="en" 
+                  changeLanguage={changeLanguage}
+                  {...allProps}
                 />
               } />
               
-              <Route path="/detail/:type/:id" element={<DetailPageWrapper />} />
-              
-              {/* Protected Routes */}
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <UserProfile
-                    currentLang={currentLang}
-                    setCurrentLang={setCurrentLang}
-                    translations={translations}
-                    setShowLoginModal={() => openModal('login')}
-                    setCurrentView={setCurrentView}
-                  />
-                </ProtectedRoute>
+              {/* Arapça Routes */}
+              <Route path="/ar/*" element={
+                <LanguageRoutes 
+                  currentLang="ar" 
+                  changeLanguage={changeLanguage}
+                  {...allProps}
+                />
               } />
               
-              <Route path="/reservations" element={
-                <ProtectedRoute>
-                  <UserReservations
-                    currentLang={currentLang}
-                    setCurrentLang={setCurrentLang}
-                    translations={translations}
-                    setShowLoginModal={() => openModal('login')}
-                    setCurrentView={setCurrentView}
-                  />
-                </ProtectedRoute>
-              } />
-
-              <Route path="/favorites" element={
-                <ProtectedRoute>
-                  <UserFavorites
-                    currentLang={currentLang}
-                    setCurrentLang={setCurrentLang}
-                    translations={translations}
-                    setShowLoginModal={() => openModal('login')}
-                    setCurrentView={setCurrentView}
-                  />
-                </ProtectedRoute>
+              {/* Rusça Routes */}
+              <Route path="/ru/*" element={
+                <LanguageRoutes 
+                  currentLang="ru" 
+                  changeLanguage={changeLanguage}
+                  {...allProps}
+                />
               } />
             </Routes>
           </Suspense>
