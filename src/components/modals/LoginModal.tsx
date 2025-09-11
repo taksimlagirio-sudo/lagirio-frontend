@@ -32,9 +32,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
   
   // Google Login Handler EKLE
   const handleGoogleLogin = () => {
-    // Backend Google OAuth endpoint'ine yönlendir
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
-    window.location.href = `${apiUrl}/auth/google`;
+    // Artık kendi domain'iniz üzerinden
+    window.location.href = '/auth/google';
   };
 
   if (!isOpen) return null;
