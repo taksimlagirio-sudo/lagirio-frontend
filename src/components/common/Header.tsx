@@ -6,6 +6,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+// WhatsApp Logo Component
+const WhatsAppIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.149-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.123-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+  </svg>
+);
+
 interface HeaderProps {
   transparent?: boolean;
   currentLang: string;
@@ -33,6 +40,22 @@ const Header: React.FC<HeaderProps> = ({
   
   const userMenuRef = useRef<HTMLDivElement>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
+
+  // WhatsApp numaraları - dil bazlı
+  const whatsappNumbers = {
+    tr: '+905355117018',
+    en: '+905355117018',
+    ar: '+905357816469',
+    ru: '+905432512123'
+  };
+
+  // WhatsApp mesajları - dil bazlı
+  const whatsappMessages = {
+    tr: 'Merhaba, lagirio.com sitesinden ulaşıyorum. Bilgi almak istiyorum.',
+    en: 'Hello, I am contacting you from lagirio.com. I would like to get information.',
+    ar: 'مرحبا، أتواصل معكم من موقع lagirio.com. أود الحصول على معلومات.',
+    ru: 'Здравствуйте, я обращаюсь к вам с сайта lagirio.com. Хотел бы получить информацию.'
+  };
 
   // Language options
   const languages = [
@@ -91,14 +114,21 @@ const Header: React.FC<HeaderProps> = ({
     return user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  // Handle language change - DÜZELTME
+  // Handle language change
   const handleLanguageChange = (langCode: string) => {
-    console.log('Changing language to:', langCode); // Debug için
+    console.log('Changing language to:', langCode);
     setCurrentLang(langCode);
     setShowMobileMenu(false);
     setShowLangMenu(false);
-    // Language değişimini localStorage'a kaydet
     localStorage.setItem('preferredLanguage', langCode);
+  };
+
+  // WhatsApp'a yönlendirme
+  const handleWhatsAppClick = () => {
+    const phoneNumber = whatsappNumbers[currentLang as keyof typeof whatsappNumbers];
+    const message = encodeURIComponent(whatsappMessages[currentLang as keyof typeof whatsappMessages]);
+    const whatsappUrl = `https://wa.me/${phoneNumber.replace('+', '')}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -122,7 +152,21 @@ const Header: React.FC<HeaderProps> = ({
             </h1>
 
             {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-3">
+              {/* WhatsApp Button - Desktop - WhatsApp Yeşili */}
+              <button
+                onClick={handleWhatsAppClick}
+                className={`group relative flex items-center space-x-2 px-5 py-2.5 rounded-full font-medium transition-all ${
+                  transparent
+                    ? "bg-[#25D366]/20 backdrop-blur-sm text-white border border-[#25D366]/40 hover:bg-[#25D366]/30 hover:border-[#25D366]/60"
+                    : "bg-[#25D366] text-white hover:bg-[#128C7E] shadow-sm"
+                }`}
+                aria-label="WhatsApp"
+              >
+                <WhatsAppIcon className="w-5 h-5" />
+                <span>WhatsApp</span>
+              </button>
+
               {/* User Menu */}
               {isAuthenticated && user ? (
                 <div className="relative" ref={userMenuRef}>
@@ -234,23 +278,39 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Mobile Menu Button - Touch-friendly boyut */}
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className={`md:hidden relative p-2 -mr-2 rounded-xl transition-all ${
-                transparent 
-                  ? "text-white" 
-                  : "text-gray-700"
-              }`}
-              aria-label="Menu"
-            >
-              <div className={`transform transition-all duration-300 ${showMobileMenu ? 'rotate-180 scale-75' : ''}`}>
-                {showMobileMenu ? (
-                  <X size={28} className="relative z-50" />
-                ) : (
-                  <Menu size={28} />
-                )}
-              </div>
-            </button>
+            <div className="md:hidden flex items-center space-x-2">
+              {/* WhatsApp Button - Mobile - WhatsApp Yeşili */}
+              <button
+                onClick={handleWhatsAppClick}
+                className={`p-2.5 rounded-full transition-all ${
+                  transparent 
+                    ? "bg-[#25D366]/20 backdrop-blur-sm text-white border border-[#25D366]/40" 
+                    : "bg-[#25D366] text-white shadow-sm"
+                }`}
+                aria-label="WhatsApp"
+              >
+                <WhatsAppIcon className="w-5 h-5" />
+              </button>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className={`relative p-2 rounded-xl transition-all ${
+                  transparent 
+                    ? "text-white" 
+                    : "text-gray-700"
+                }`}
+                aria-label="Menu"
+              >
+                <div className={`transform transition-all duration-300 ${showMobileMenu ? 'rotate-180 scale-75' : ''}`}>
+                  {showMobileMenu ? (
+                    <X size={28} className="relative z-50" />
+                  ) : (
+                    <Menu size={28} />
+                  )}
+                </div>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -311,6 +371,18 @@ const Header: React.FC<HeaderProps> = ({
         {/* Mobile Menu Content */}
         <div className="flex flex-col h-[calc(100%-180px)] overflow-y-auto">
           <div className="flex-1 px-4">
+            {/* WhatsApp Button - Mobile Menu - WhatsApp Gradient */}
+            <button
+              onClick={() => {
+                handleWhatsAppClick();
+                setShowMobileMenu(false);
+              }}
+              className="w-full mb-4 bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white px-6 py-4 rounded-2xl font-semibold hover:shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-3 shadow-md"
+            >
+              <WhatsAppIcon className="w-6 h-6" />
+              <span>WhatsApp</span>
+            </button>
+
             {isAuthenticated && user ? (
               <div className="space-y-2">
                 {/* Main Navigation */}
@@ -379,7 +451,7 @@ const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Language Selector - Mobile Bottom - DÜZELTME */}
+          {/* Language Selector - Mobile Bottom */}
           <div className="p-4 border-t border-white/10">
             <p className="text-white/60 text-xs uppercase tracking-wider mb-3">
               {t.selectLanguage || 'Dil Seçimi'}
@@ -389,7 +461,7 @@ const Header: React.FC<HeaderProps> = ({
                 <button
                   key={lang.code}
                   onClick={() => {
-                    console.log('Mobile language button clicked:', lang.code); // Debug
+                    console.log('Mobile language button clicked:', lang.code);
                     handleLanguageChange(lang.code);
                   }}
                   className={`relative px-3 py-3 rounded-xl transition-all text-sm font-medium active:scale-95 ${
