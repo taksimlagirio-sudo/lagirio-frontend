@@ -33,7 +33,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   // Google Login Handler EKLE
   const handleGoogleLogin = () => {
     // Artık kendi domain'iniz üzerinden
-    window.location.href = '/auth/google';
+    window.location.href = '/api/auth/google';
   };
 
   if (!isOpen) return null;
