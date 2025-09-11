@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from '../components/common/Header';
 import HeroSection from '../components/sections/HeroSection';
 import ApartmentsSection from '../components/sections/ApartmentsSection';
@@ -27,7 +27,7 @@ interface RentalsPageProps {
     checkOut: string;
     adults: number;
     children: number;
-    childrenAgeGroups?: {
+    childrenAgeGroups?: { // YENİ
       above7: number;
       between2And7: number;
       under2: number;
@@ -52,12 +52,6 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
 }) => {
   const t = translations[currentLang];
   const [isSearching, setIsSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false); // YENİ STATE
-
-  // Tarihler değiştiğinde hasSearched'i sıfırla
-  useEffect(() => {
-    setHasSearched(false);
-  }, [globalSearchParams.checkIn, globalSearchParams.checkOut]);
 
   // Arka plan fotoğrafları
   const backgroundImages = siteImages?.heroRentals || [
@@ -138,7 +132,7 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
     requestAnimationFrame(animation);
   };
 
-  // Güncellenen handleSearch fonksiyonu
+  // GÜNCELLENEN handleSearch fonksiyonu
   const handleSearch = async () => {
     setIsSearching(true);
     
@@ -151,26 +145,15 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
         globalSearchParams.children,
         globalSearchParams.childrenAgeGroups
       );
-      setHasSearched(true); // Arama yapıldığını işaretle
     }
     
     setIsSearching(false);
     smoothScrollTo("apartments-section", 1500);
   };
 
-  // Güncellenen filtreleme fonksiyonu
+  // GÜNCELLENEN KAPASİTE FİLTRELEME - Yeni sistem için
   const getFilteredApartments = () => {
-    // Tarihler seçili ama henüz arama yapılmamışsa, boş array döndür
-    if (globalSearchParams.checkIn && globalSearchParams.checkOut && !hasSearched) {
-      return [];
-    }
-    
-    // Eğer tarih seçilmişse ve arama yapılmışsa, backend'den gelen veriyi kullan
-    if (globalSearchParams.checkIn && globalSearchParams.checkOut && hasSearched) {
-      return apartments;
-    }
-    
-    // Tarih seçilmemişse, sadece basit kapasite kontrolü yap
+    // Tarih seçilmemişse veya arama yapılmışsa normal filtreleme
     return apartments.filter((apt) => {
       const totalGuests = globalSearchParams.adults + globalSearchParams.children;
       
@@ -236,6 +219,12 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
         onOpenModal={handleOpenModal}
         onShowLoginModal={() => setShowLoginModal(true)} 
       />
+
+      {/* ContactSection'ı KALDIR */}
+      {/* <ContactSection 
+        translations={translations}
+        currentLang={currentLang}
+      /> */}
     </div>
   );
 };
