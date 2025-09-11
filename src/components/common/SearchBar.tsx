@@ -37,6 +37,7 @@ const getTurkeyDateString = () => {
   return turkeyDate.toISOString().split('T')[0];
 };
 
+
 const SearchBar: React.FC<SearchBarProps> = ({
   searchFilters,
   setSearchFilters,
@@ -50,6 +51,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [showGuestsDropdown, setShowGuestsDropdown] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(getTurkeyDate());
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+
+  console.log('SearchBar render edildi', { showDatePicker, showGuestsDropdown });
+
   
   // Dile göre ay ve gün isimleri - YENİ EKLENEN
   const localMonthNames = currentLang === 'tr' ? monthNames : 
@@ -100,6 +104,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const handleDateSelect = (dateStr: string) => {
+    console.log('handleDateSelect çağrıldı', dateStr);
+    
     if (!searchFilters.checkIn || searchFilters.checkOut) {
       setSearchFilters({ ...searchFilters, checkIn: dateStr, checkOut: '' });
     } else {
@@ -124,7 +130,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
         {/* Date Selection */}
         <div className={`relative date-picker-container ${isMobileModal ? 'w-full' : 'md:col-span-2'}`}>
           <button
-            onClick={() => setShowDatePicker(!showDatePicker)}
+            onClick={() => {
+              console.log('Date picker toggle', !showDatePicker); // DEBUG LOG
+              setShowDatePicker(!showDatePicker);
+            }}
             className={`
               w-full px-4 py-3 bg-white rounded-lg flex items-center justify-between 
               hover:bg-gray-50 transition-colors
@@ -262,7 +271,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
         {/* Guests - Mobilde full width */}
         <div className={`relative ${isMobileModal ? 'w-full' : ''}`}>
           <button
-            onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}
+            onClick={() => {
+              console.log('Guests dropdown toggle', !showGuestsDropdown); // DEBUG LOG
+              setShowGuestsDropdown(!showGuestsDropdown);
+            }}
             className={`
               w-full px-4 py-3 bg-white rounded-lg flex items-center justify-between 
               hover:bg-gray-50 transition-colors h-14
