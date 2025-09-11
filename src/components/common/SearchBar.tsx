@@ -105,7 +105,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     } else {
       if (dateStr > searchFilters.checkIn) {
         setSearchFilters({ ...searchFilters, checkOut: dateStr });
-        // setShowDatePicker(false); // BU SATIRI YORUM YAPIN VEYA SİLİN
+        setShowDatePicker(false);
       } else {
         setSearchFilters({ ...searchFilters, checkIn: dateStr, checkOut: '' });
       }

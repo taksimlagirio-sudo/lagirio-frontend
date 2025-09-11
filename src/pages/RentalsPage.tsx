@@ -153,7 +153,12 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
 
   // GÜNCELLENEN KAPASİTE FİLTRELEME - Yeni sistem için
   const getFilteredApartments = () => {
-    // Tarih seçilmemişse veya arama yapılmışsa normal filtreleme
+    // Eğer tarih seçilmişse, backend zaten filtreleme yaptı
+    if (globalSearchParams.checkIn && globalSearchParams.checkOut) {
+      return apartments; // Backend'den gelen filtrelenmiş veriyi direkt kullan
+    }
+    
+    // Tarih seçilmemişse, sadece basit kapasite kontrolü yap
     return apartments.filter((apt) => {
       const totalGuests = globalSearchParams.adults + globalSearchParams.children;
       

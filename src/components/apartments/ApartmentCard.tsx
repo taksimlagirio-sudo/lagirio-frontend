@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Users, Home, Calendar, Euro, Heart } from 'lucide-react';
-import { pricingAPI } from '../../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import { favoritesAPI } from '../../utils/api';
 
@@ -18,7 +17,7 @@ interface Apartment {
     en?: Translation;
     ar?: Translation;
     ru?: Translation;
-    [key: string]: Translation | undefined; // Index signature ekledik
+    [key: string]: Translation | undefined;
   };
   title: string;
   internalCode?: string;
@@ -36,6 +35,8 @@ interface Apartment {
   currency?: string;
   status: string;
   reservations?: any[];
+  calculatedTotalPrice?: number; // Backend'den gelen
+  avgDailyPrice?: number; // Backend'den gelen
 }
 
 interface SearchParams {
@@ -43,15 +44,6 @@ interface SearchParams {
   checkOut: string;
   adults: number;
   children: number;
-}
-
-interface CalculatedPrice {
-  total: number;
-  originalTotal?: number;
-  perNight: number;
-  nights: number;
-  hasDiscount?: boolean;
-  loading: boolean;
 }
 
 interface ApartmentCardProps {
@@ -98,51 +90,12 @@ const MobileApartmentCard: React.FC<ApartmentCardProps> = ({
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const { isAuthenticated } = useAuth();
-  const [calculatedPrice, setCalculatedPrice] = useState<CalculatedPrice>({
-    total: 0,
-    perNight: apartment.basePrice,
-    nights: 0,
-    loading: false
-  });
 
   useEffect(() => {
     if (isAuthenticated && apartment._id) {
       checkFavoriteStatus();
     }
   }, [isAuthenticated, apartment._id]);
-
-  useEffect(() => {
-    if (searchParams?.checkIn && searchParams?.checkOut && searchParams?.adults) {
-      calculatePrice();
-    }
-  }, [searchParams, apartment._id]);
-
-  const calculatePrice = async () => {
-    try {
-      setCalculatedPrice((prev: CalculatedPrice) => ({ ...prev, loading: true }));
-      
-      const apartmentId = apartment._id || apartment.id.toString();
-      const response = await pricingAPI.calculatePrice({
-        apartmentId,
-        checkIn: searchParams!.checkIn,
-        checkOut: searchParams!.checkOut,
-        adults: searchParams!.adults,
-        children: searchParams!.children
-      });
-
-      setCalculatedPrice({
-        total: response.totalPrice,
-        originalTotal: response.totalOriginalPrice,
-        perNight: response.pricePerNight,
-        nights: response.nights,
-        hasDiscount: response.hasDiscount,
-        loading: false
-      });
-    } catch (error) {
-      console.error('Fiyat hesaplama hatası:', error);
-      setCalculatedPrice((prev: CalculatedPrice) => ({ ...prev, loading: false }));
-    }
-  };
 
   const checkFavoriteStatus = async () => {
     try {
@@ -176,6 +129,10 @@ const MobileApartmentCard: React.FC<ApartmentCardProps> = ({
   const title = apartment.translations?.[currentLang]?.title || 
                 apartment.translations?.tr?.title || 
                 apartment.title;
+
+  // Gece sayısını hesapla
+  const nights = searchParams?.checkIn && searchParams?.checkOut ? 
+    Math.ceil((new Date(searchParams.checkOut).getTime() - new Date(searchParams.checkIn).getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
   return (
     <div 
@@ -229,23 +186,15 @@ const MobileApartmentCard: React.FC<ApartmentCardProps> = ({
 
         {/* Fiyat ve Buton */}
         <div className="flex items-center justify-between">
-          {searchParams?.checkIn && searchParams?.checkOut ? (
-            calculatedPrice.loading ? (
-              <div className="h-6 bg-gray-200 rounded w-16 animate-pulse"></div>
-            ) : calculatedPrice.total > 0 ? (
-              <div>
-                <div className="text-base font-bold text-[#1a4a3a]">
-                  €{calculatedPrice.total}
-                </div>
-                <div className="text-[10px] text-gray-500">
-                  {calculatedPrice.nights} {t.night || 'gece'}
-                </div>
+          {searchParams?.checkIn && searchParams?.checkOut && apartment.calculatedTotalPrice ? (
+            <div>
+              <div className="text-base font-bold text-[#1a4a3a]">
+                €{apartment.calculatedTotalPrice}
               </div>
-            ) : (
-              <span className="text-sm font-semibold text-[#1a4a3a]">
-                {t.bookNow || 'Rezerve Et'}
-              </span>
-            )
+              <div className="text-[10px] text-gray-500">
+                {nights} {t.night || 'gece'}
+              </div>
+            </div>
           ) : (
             <span className="text-sm font-semibold text-[#1a4a3a]">
               {t.viewDetails || 'İncele'}
@@ -276,51 +225,12 @@ const DesktopApartmentCard: React.FC<ApartmentCardProps> = ({
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const { isAuthenticated } = useAuth();
-  const [calculatedPrice, setCalculatedPrice] = useState<CalculatedPrice>({
-    total: 0,
-    perNight: apartment.basePrice,
-    nights: 0,
-    loading: false
-  });
 
   useEffect(() => {
     if (isAuthenticated && apartment._id) {
       checkFavoriteStatus();
     }
   }, [isAuthenticated, apartment._id]);
-
-  useEffect(() => {
-    if (searchParams?.checkIn && searchParams?.checkOut && searchParams?.adults) {
-      calculatePrice();
-    }
-  }, [searchParams, apartment._id]);
-
-  const calculatePrice = async () => {
-    try {
-      setCalculatedPrice((prev: CalculatedPrice) => ({ ...prev, loading: true }));
-      
-      const apartmentId = apartment._id || apartment.id.toString();
-      const response = await pricingAPI.calculatePrice({
-        apartmentId,
-        checkIn: searchParams!.checkIn,
-        checkOut: searchParams!.checkOut,
-        adults: searchParams!.adults,
-        children: searchParams!.children
-      });
-
-      setCalculatedPrice({
-        total: response.totalPrice,
-        originalTotal: response.totalOriginalPrice,
-        perNight: response.pricePerNight,
-        nights: response.nights,
-        hasDiscount: response.hasDiscount,
-        loading: false
-      });
-    } catch (error) {
-      console.error('Fiyat hesaplama hatası:', error);
-      setCalculatedPrice((prev: CalculatedPrice) => ({ ...prev, loading: false }));
-    }
-  };
 
   const checkFavoriteStatus = async () => {
     try {
@@ -432,39 +342,23 @@ const DesktopApartmentCard: React.FC<ApartmentCardProps> = ({
 
           {/* Fiyat Gösterimi */}
           <div className="text-right">
-            {searchParams?.checkIn && searchParams?.checkOut ? (
-              calculatedPrice.loading ? (
-                <div className="animate-pulse">
-                  <div className="h-8 bg-gray-200 rounded w-24"></div>
+            {searchParams?.checkIn && searchParams?.checkOut && apartment.calculatedTotalPrice ? (
+              <div>
+                <div className="flex items-center justify-end">
+                  <Euro size={20} className="text-[#1a4a3a] mr-1" />
+                  <span className="text-2xl font-bold text-[#1a4a3a]">
+                    {apartment.calculatedTotalPrice}
+                  </span>
                 </div>
-              ) : calculatedPrice.total > 0 ? (
-                <div>
-                  {calculatedPrice.hasDiscount && calculatedPrice.originalTotal && (
-                    <div className="text-lg text-gray-400 line-through">
-                      €{calculatedPrice.originalTotal}
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-end">
-                    <Euro size={20} className="text-[#1a4a3a] mr-1" />
-                    <span className="text-2xl font-bold text-[#1a4a3a]">
-                      {calculatedPrice.total}
-                    </span>
-                  </div>
-                  
-                  <div className="text-sm text-gray-600">
-                    {t.total || 'için toplam'}
-                  </div>
-                  
-                  <div className="text-xs text-gray-500">
-                    €{calculatedPrice.perNight}/{t.perNight}
-                  </div>
+                
+                <div className="text-sm text-gray-600">
+                  {t.total || 'toplam'}
                 </div>
-              ) : (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">{t.priceLoadError || 'Fiyat bilgisi yüklenemedi'}</p>
+                
+                <div className="text-xs text-gray-500">
+                  €{apartment.avgDailyPrice || apartment.basePrice}/{t.perNight || 'gece'}
                 </div>
-              )
+              </div>
             ) : (
               <div className="text-center">
                 <div className="text-lg font-semibold text-[#1a4a3a] mb-1">
