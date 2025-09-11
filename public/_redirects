@@ -1,5 +1,7 @@
 /sitemap.xml  https://lagirio-api.onrender.com/sitemap.xml  200
 /robots.txt   https://lagirio-api.onrender.com/robots.txt   200
 /api/*        https://lagirio-api.onrender.com/api/:splat    200
-/auth/*       https://lagirio-api.onrender.com/api/auth/:splat 200
+/auth/callback  /index.html  200
+/auth/google    https://lagirio-api.onrender.com/api/auth/google  200
+/auth/google/callback  https://lagirio-api.onrender.com/api/auth/google/callback  200
 /*            /index.html                                   200
