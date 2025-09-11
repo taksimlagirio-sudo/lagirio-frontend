@@ -1,6 +1,6 @@
 // components/common/SearchBar.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Search, ChevronDown, ChevronLeft, ChevronRight, Baby } from 'lucide-react';
 import { monthNames, dayNames, getDaysInMonth, getFirstDayOfMonth } from '../../utils/dateHelpers';
 
@@ -22,7 +22,7 @@ interface SearchBarProps {
   onSearch: () => void;
   translations: any;
   currentLang: string;
-  isMobileModal?: boolean; // ✅ Yeni prop
+  isMobileModal?: boolean;
 }
 
 const getTurkeyDate = () => {
@@ -37,25 +37,37 @@ const getTurkeyDateString = () => {
   return turkeyDate.toISOString().split('T')[0];
 };
 
-
 const SearchBar: React.FC<SearchBarProps> = ({
-  searchFilters,
-  setSearchFilters,
+  searchFilters: initialFilters,
+  setSearchFilters: onFiltersChange,
   onSearch,
   translations,
   currentLang,
-  isMobileModal = false // ✅ Default false
+  isMobileModal = false
 }) => {
   const t = translations[currentLang];
+  
+  // Local state - parent'tan gelen filtreleri başlangıç değeri olarak kullan
+  const [localFilters, setLocalFilters] = useState(initialFilters);
+  
+  // Parent'tan gelen filtreler değiştiğinde local state'i güncelle
+  useEffect(() => {
+    setLocalFilters(initialFilters);
+  }, [initialFilters]);
+  
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGuestsDropdown, setShowGuestsDropdown] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(getTurkeyDate());
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
-
-  console.log('SearchBar render edildi', { showDatePicker, showGuestsDropdown });
-
   
-  // Dile göre ay ve gün isimleri - YENİ EKLENEN
+  // Çocuk yaş grupları için state
+  const [childrenAgeGroups, setChildrenAgeGroups] = useState({
+    above7: localFilters.childrenAgeGroups?.above7 || 0,
+    between2And7: localFilters.childrenAgeGroups?.between2And7 || 0,
+    under2: localFilters.childrenAgeGroups?.under2 || 0
+  });
+  
+  // Dile göre ay ve gün isimleri
   const localMonthNames = currentLang === 'tr' ? monthNames : 
     currentLang === 'en' ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] :
     currentLang === 'ar' ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'] :
@@ -67,57 +79,54 @@ const SearchBar: React.FC<SearchBarProps> = ({
     currentLang === 'ar' ? ['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'] :
     currentLang === 'ru' ? ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] :
     dayNames;
-  
-  // Çocuk yaş grupları için state - GÜNCELLEME
-  const [childrenAgeGroups, setChildrenAgeGroups] = useState({
-    above7: searchFilters.childrenAgeGroups?.above7 || 0,
-    between2And7: searchFilters.childrenAgeGroups?.between2And7 || 0,
-    under2: searchFilters.childrenAgeGroups?.under2 || 0
-  });
 
-  // Çocuk yaş gruplarını güncelle
+  // Çocuk yaş gruplarını güncelle - LOCAL STATE İLE
   const updateChildrenAgeGroups = (group: 'above7' | 'between2And7' | 'under2', value: number) => {
     const newGroups = { ...childrenAgeGroups, [group]: value };
     setChildrenAgeGroups(newGroups);
     
-    // Toplam çocuk sayısını güncelle
+    // Toplam çocuk sayısını güncelle - LOCAL
     const totalChildren = newGroups.above7 + newGroups.between2And7 + newGroups.under2;
-    setSearchFilters({ 
-      ...searchFilters, 
+    setLocalFilters({ 
+      ...localFilters, 
       children: totalChildren,
       childrenAgeGroups: newGroups
     });
   };
 
-  // Çocuk sayısı değiştiğinde yaş gruplarını sıfırla
+  // Çocuk sayısı değiştiğinde yaş gruplarını sıfırla - LOCAL
   const handleChildrenChange = (newCount: number) => {
     if (newCount === 0) {
       setChildrenAgeGroups({ above7: 0, between2And7: 0, under2: 0 });
-      setSearchFilters({ 
-        ...searchFilters, 
+      setLocalFilters({ 
+        ...localFilters, 
         children: 0,
         childrenAgeGroups: { above7: 0, between2And7: 0, under2: 0 }
       });
     } else {
-      setSearchFilters({ ...searchFilters, children: newCount });
+      setLocalFilters({ ...localFilters, children: newCount });
     }
   };
 
+  // Tarih seçimi - LOCAL STATE İLE VE setShowDatePicker(false) KALDIRILIYOR
   const handleDateSelect = (dateStr: string) => {
-    console.log('handleDateSelect çağrıldı', dateStr);
-    
-    if (!searchFilters.checkIn || searchFilters.checkOut) {
-      setSearchFilters({ ...searchFilters, checkIn: dateStr, checkOut: '' });
+    if (!localFilters.checkIn || localFilters.checkOut) {
+      setLocalFilters({ ...localFilters, checkIn: dateStr, checkOut: '' });
     } else {
-      if (dateStr > searchFilters.checkIn) {
-        setSearchFilters({ ...searchFilters, checkOut: dateStr });
-        setShowDatePicker(false);
+      if (dateStr > localFilters.checkIn) {
+        setLocalFilters({ ...localFilters, checkOut: dateStr });
+        // setShowDatePicker(false); // KALDIRILDI
       } else {
-        setSearchFilters({ ...searchFilters, checkIn: dateStr, checkOut: '' });
+        setLocalFilters({ ...localFilters, checkIn: dateStr, checkOut: '' });
       }
     }
   };
 
+  // Arama butonuna tıklandığında
+  const handleSearch = () => {
+    onFiltersChange(localFilters); // Parent'a gönder
+    onSearch(); // Arama fonksiyonunu çağır
+  };
 
   return (
     <div className={`${isMobileModal ? '' : 'bg-[#f5e6d3] rounded-2xl p-6 shadow-xl'}`}>
@@ -130,10 +139,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         {/* Date Selection */}
         <div className={`relative date-picker-container ${isMobileModal ? 'w-full' : 'md:col-span-2'}`}>
           <button
-            onClick={() => {
-              console.log('Date picker toggle', !showDatePicker); // DEBUG LOG
-              setShowDatePicker(!showDatePicker);
-            }}
+            onClick={() => setShowDatePicker(!showDatePicker)}
             className={`
               w-full px-4 py-3 bg-white rounded-lg flex items-center justify-between 
               hover:bg-gray-50 transition-colors
@@ -143,10 +149,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
             <div className="flex items-center space-x-2">
               <Calendar size={20} className="text-[#0a2e23]" />
               <span className="text-[#0a2e23]">
-                {searchFilters.checkIn && searchFilters.checkOut
-                  ? `${new Date(searchFilters.checkIn).toLocaleDateString(currentLang === 'tr' ? "tr-TR" : "en-US")} - ${new Date(searchFilters.checkOut).toLocaleDateString(currentLang === 'tr' ? "tr-TR" : "en-US")}`
-                  : searchFilters.checkIn
-                  ? `${new Date(searchFilters.checkIn).toLocaleDateString(currentLang === 'tr' ? "tr-TR" : "en-US")} - ?`
+                {localFilters.checkIn && localFilters.checkOut
+                  ? `${new Date(localFilters.checkIn).toLocaleDateString(currentLang === 'tr' ? "tr-TR" : "en-US")} - ${new Date(localFilters.checkOut).toLocaleDateString(currentLang === 'tr' ? "tr-TR" : "en-US")}`
+                  : localFilters.checkIn
+                  ? `${new Date(localFilters.checkIn).toLocaleDateString(currentLang === 'tr' ? "tr-TR" : "en-US")} - ?`
                   : t.checkIn || 'Check-in'}
               </span>
             </div>
@@ -157,11 +163,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
             <div className={`
               absolute top-full mt-2 bg-white rounded-lg shadow-xl p-4 z-50 
               ${isMobileModal 
-                ? 'left-0 right-0 mx-4' // Mobilde ekran kenarlarından margin
+                ? 'left-0 right-0 mx-4'
                 : 'w-full md:w-[500px]'
               }
             `}>
-              {/* Calendar - Mobilde responsive */}
+              {/* Calendar */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <button
@@ -198,9 +204,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   ))}
                 </div>
 
-                {/* Calendar days - Mobilde daha küçük */}
+                {/* Calendar days */}
                 <div className="grid grid-cols-7 gap-1">
-                  {/* ... mevcut takvim mantığı aynı kalacak ... */}
                   {Array.from({
                     length: getFirstDayOfMonth(currentMonth) === 0 ? 6 : getFirstDayOfMonth(currentMonth) - 1,
                   }).map((_, i) => (
@@ -213,13 +218,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       currentMonth.getMonth() + 1
                     ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                     const isToday = dateStr === getTurkeyDateString();
-                    const isInRange = searchFilters.checkIn && searchFilters.checkOut && 
-                                    dateStr > searchFilters.checkIn && dateStr < searchFilters.checkOut;
+                    const isInRange = localFilters.checkIn && localFilters.checkOut && 
+                                    dateStr > localFilters.checkIn && dateStr < localFilters.checkOut;
                     const isBooked = false;
                     const isPast = dateStr < getTurkeyDateString();
                     const isHovered = dateStr === hoveredDate;
-                    const isCheckIn = dateStr === searchFilters.checkIn;
-                    const isCheckOut = dateStr === searchFilters.checkOut;
+                    const isCheckIn = dateStr === localFilters.checkIn;
+                    const isCheckOut = dateStr === localFilters.checkOut;
 
                     return (
                       <button
@@ -251,7 +256,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               <div className="flex justify-between items-center pt-4 border-t">
                 <button
                   onClick={() => {
-                    setSearchFilters({ ...searchFilters, checkIn: '', checkOut: '' });
+                    setLocalFilters({ ...localFilters, checkIn: '', checkOut: '' });
                   }}
                   className="text-sm text-gray-600 hover:text-gray-800"
                 >
@@ -268,13 +273,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
         </div>
 
-        {/* Guests - Mobilde full width */}
+        {/* Guests */}
         <div className={`relative ${isMobileModal ? 'w-full' : ''}`}>
           <button
-            onClick={() => {
-              console.log('Guests dropdown toggle', !showGuestsDropdown); // DEBUG LOG
-              setShowGuestsDropdown(!showGuestsDropdown);
-            }}
+            onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}
             className={`
               w-full px-4 py-3 bg-white rounded-lg flex items-center justify-between 
               hover:bg-gray-50 transition-colors h-14
@@ -284,8 +286,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
             <div className="flex items-center space-x-2">
               <Users size={20} className="text-[#0a2e23] flex-shrink-0" />
               <span className="text-[#0a2e23] text-sm">
-                {searchFilters.adults} {t.adults || 'Yetişkin'}
-                {searchFilters.children > 0 && `, ${searchFilters.children} ${searchFilters.children === 1 ? (t.child || 'Çocuk') : (t.children || 'Çocuk')}`}
+                {localFilters.adults} {t.adults || 'Yetişkin'}
+                {localFilters.children > 0 && `, ${localFilters.children} ${localFilters.children === 1 ? (t.child || 'Çocuk') : (t.children || 'Çocuk')}`}
               </span>
             </div>
             <ChevronDown size={20} className="text-[#0a2e23] flex-shrink-0" />
@@ -295,7 +297,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             <div className={`
               absolute top-full mt-2 bg-white rounded-lg shadow-lg p-4 z-50
               ${isMobileModal 
-                ? 'left-0 right-0' // Mobilde full width
+                ? 'left-0 right-0'
                 : 'w-full'
               }
             `}>
@@ -304,14 +306,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 <span className="text-gray-700">{t.adults}</span>
                 <div className="flex items-center space-x-3">
                   <button
-                    onClick={() => setSearchFilters({ ...searchFilters, adults: Math.max(1, searchFilters.adults - 1) })}
+                    onClick={() => setLocalFilters({ ...localFilters, adults: Math.max(1, localFilters.adults - 1) })}
                     className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300 flex items-center justify-center"
                   >
                     -
                   </button>
-                  <span className="w-8 text-center font-medium">{searchFilters.adults}</span>
+                  <span className="w-8 text-center font-medium">{localFilters.adults}</span>
                   <button
-                    onClick={() => setSearchFilters({ ...searchFilters, adults: searchFilters.adults + 1 })}
+                    onClick={() => setLocalFilters({ ...localFilters, adults: localFilters.adults + 1 })}
                     className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300 flex items-center justify-center"
                   >
                     +
@@ -324,14 +326,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 <span className="text-gray-700">{t.children}</span>
                 <div className="flex items-center space-x-3">
                   <button
-                    onClick={() => handleChildrenChange(Math.max(0, searchFilters.children - 1))}
+                    onClick={() => handleChildrenChange(Math.max(0, localFilters.children - 1))}
                     className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300 flex items-center justify-center"
                   >
                     -
                   </button>
-                  <span className="w-8 text-center font-medium">{searchFilters.children}</span>
+                  <span className="w-8 text-center font-medium">{localFilters.children}</span>
                   <button
-                    onClick={() => handleChildrenChange(searchFilters.children + 1)}
+                    onClick={() => handleChildrenChange(localFilters.children + 1)}
                     className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300 flex items-center justify-center"
                   >
                     +
@@ -339,8 +341,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 </div>
               </div>
 
-              {/* Çocuk Yaş Grupları - GÜNCELLENMIŞ */}
-              {searchFilters.children > 0 && (
+              {/* Çocuk Yaş Grupları */}
+              {localFilters.children > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-center mb-3">
                     <Baby size={16} className="text-gray-600 mr-2" />
@@ -351,7 +353,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                     <p className="text-xs text-blue-800">
-                      Toplam: {childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2} / {searchFilters.children} çocuk
+                      Toplam: {childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2} / {localFilters.children} çocuk
                     </p>
                   </div>
                   
@@ -371,7 +373,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       <span className="w-8 text-center text-sm font-medium">{childrenAgeGroups.above7}</span>
                       <button
                         onClick={() => updateChildrenAgeGroups('above7', childrenAgeGroups.above7 + 1)}
-                        disabled={childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2 >= searchFilters.children}
+                        disabled={childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2 >= localFilters.children}
                         className="w-7 h-7 bg-gray-200 rounded-full hover:bg-gray-300 flex items-center justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         +
@@ -395,7 +397,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       <span className="w-8 text-center text-sm font-medium">{childrenAgeGroups.between2And7}</span>
                       <button
                         onClick={() => updateChildrenAgeGroups('between2And7', childrenAgeGroups.between2And7 + 1)}
-                        disabled={childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2 >= searchFilters.children}
+                        disabled={childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2 >= localFilters.children}
                         className="w-7 h-7 bg-gray-200 rounded-full hover:bg-gray-300 flex items-center justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         +
@@ -419,7 +421,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       <span className="w-8 text-center text-sm font-medium">{childrenAgeGroups.under2}</span>
                       <button
                         onClick={() => updateChildrenAgeGroups('under2', childrenAgeGroups.under2 + 1)}
-                        disabled={childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2 >= searchFilters.children}
+                        disabled={childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2 >= localFilters.children}
                         className="w-7 h-7 bg-gray-200 rounded-full hover:bg-gray-300 flex items-center justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         +
@@ -427,8 +429,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     </div>
                   </div>
 
-                  {/* Uyarı - Eğer toplam çocuk sayısı eşleşmiyorsa */}
-                  {(childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2) !== searchFilters.children && searchFilters.children > 0 && (
+                  {/* Uyarı */}
+                  {(childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2) !== localFilters.children && localFilters.children > 0 && (
                     <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
                       <p className="text-xs text-red-600 flex items-center">
                         <span className="mr-1">⚠️</span>
@@ -452,10 +454,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
         </div>
 
-        {/* Search Button */}
+        {/* Search Button - GÜNCELLENEN */}
         <button
-          onClick={onSearch}
-          disabled={searchFilters.children > 0 && (childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2) !== searchFilters.children}
+          onClick={handleSearch}
+          disabled={localFilters.children > 0 && (childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2) !== localFilters.children}
           className={`
             w-full bg-[#0a2e23] text-white px-6 py-3 rounded-lg hover:bg-[#0f4a3a] 
             transition-colors flex items-center justify-center space-x-2 h-14 
@@ -472,7 +474,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <div className="flex justify-between items-center mt-4">
           <button
             onClick={() => {
-              setSearchFilters({
+              setLocalFilters({
                 checkIn: "",
                 checkOut: "",
                 adults: 1,
