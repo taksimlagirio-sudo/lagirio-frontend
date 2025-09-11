@@ -305,21 +305,27 @@ const AppContent: React.FC = () => {
   // Current translations
   const t = (translations as any)[currentLang];
 
-  // Navigation function
+  // GÜNCELLEME: Navigation helper fonksiyonu - DİL PREFIX'İNİ KORUR
+  const navigateWithLang = (path: string) => {
+    const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
+    navigate(`${langPrefix}${path}`);
+  };
+
+  // GÜNCELLEME: Navigation function - DİL PREFIX'İNİ KORUR
   const setCurrentView = (view: string) => {
     switch(view) {
       case 'home':
-        navigate('/');
+        navigateWithLang('/');
         break;
       case 'rentals':
-        navigate('/rentals');
+        navigateWithLang('/rentals');
         break;
       case 'owners':
-        navigate('/owners');
+        navigateWithLang('/owners');
         break;
       case 'detail':
         if (selectedItem && selectedItemType) {
-          navigate(`/detail/${selectedItemType}/${selectedItem.id}`);
+          navigateWithLang(`/detail/${selectedItemType}/${selectedItem.id}`);
         }
         break;
     }
@@ -447,6 +453,7 @@ const AppContent: React.FC = () => {
     setModalItemType(null);
   };
 
+  // GÜNCELLEME: handleDetailNavigation - DİL PREFIX'İNİ KORUR
   const handleDetailNavigation = (scrollToReservation = false) => {
     handleCloseModal();
     setSelectedItem(modalItem);
@@ -456,9 +463,9 @@ const AppContent: React.FC = () => {
     
     if (scrollToReservation) {
       // Direkt rezervasyon sayfasına git
-      navigate(`/reservation/${modalItemType}/${itemId}`);
+      navigateWithLang(`/reservation/${modalItemType}/${itemId}`);
     } else {
-      navigate(`/detail/${modalItemType}/${itemId}`);
+      navigateWithLang(`/detail/${modalItemType}/${itemId}`);
     }
   };
 
@@ -826,7 +833,7 @@ const handleLogin = async () => {
               {type === 'apartments' ? 'Daire' : 'Tur'} bulunamadı
             </h2>
             <button
-              onClick={() => navigate('/rentals')}
+              onClick={() => navigateWithLang('/rentals')} 
               className="bg-[#ff9800] text-white px-6 py-3 rounded-full hover:bg-[#f57c00] transition-colors"
             >
               Tüm {type === 'apartments' ? 'Dairelere' : 'Turlara'} Dön
