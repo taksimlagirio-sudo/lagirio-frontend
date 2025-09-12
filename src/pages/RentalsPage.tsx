@@ -134,16 +134,15 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
 
   // GÜNCELLENEN handleSearch fonksiyonu
   const handleSearch = async () => {
-    // İLK ÖNCE loading'i başlat
+    console.log('handleSearch çağrıldı!');
+    console.log('Search params:', globalSearchParams);
+    
     setIsSearching(true);
+    smoothScrollTo("apartments-section", 1500);
     
-    // Küçük bir gecikme ile scroll yap (state güncellemesi için)
-    setTimeout(() => {
-      smoothScrollTo("apartments-section", 1500);
-    }, 50);
-    
-    // Eğer tarihler seçilmişse, müsait daireleri getir
     if (globalSearchParams.checkIn && globalSearchParams.checkOut) {
+      console.log('Tarihler var, fetchApartments çağrılıyor...');
+      
       await fetchApartments(
         globalSearchParams.checkIn, 
         globalSearchParams.checkOut,
@@ -152,15 +151,14 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
         globalSearchParams.childrenAgeGroups
       );
       
-      // Backend'den veriler geldi ama hala yükleme göster
+      console.log('fetchApartments tamamlandı');
+      
       setTimeout(() => {
         setIsSearching(false);
       }, 800);
     } else {
-      // Tarih seçilmemişse de biraz bekle
-      setTimeout(() => {
-        setIsSearching(false);
-      }, 300);
+      console.log('Tarihler yok!');
+      setIsSearching(false);
     }
   };
 
