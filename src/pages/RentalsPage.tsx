@@ -53,7 +53,7 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
   setGlobalSearchParams
 }) => {
   const t = translations[currentLang];
-  const [isSearching, setIsSearching] = useState(false);
+  const [isSearching] = useState(false);
 
   // Arka plan fotoğrafları
   const backgroundImages = siteImages?.heroRentals || [
