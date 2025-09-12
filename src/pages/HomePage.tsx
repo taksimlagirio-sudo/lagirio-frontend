@@ -673,6 +673,7 @@ const HomePage: React.FC<HomePageProps> = ({
               backgroundPosition: 'center',
             }}
           />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/40" />
         </div>
 
         {/* RENKLI GLOW'LU NAVİGASYON BUTONLARI - ZARİF VE BELİRGİN */}
