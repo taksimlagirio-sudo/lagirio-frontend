@@ -20,13 +20,13 @@ export default {
         slideUp: "slideUp 0.3s ease-in-out",
         slideIn: "slideIn 0.3s ease-out",
         slideRight: "slideRight 3s linear",
-        // Buton animasyonları - GÜÇLÜ
-        'pulse-scale-left': 'pulseScaleLeft 2s ease-in-out infinite',
-        'pulse-scale-right': 'pulseScaleRight 2s ease-in-out infinite 0.5s',
+        // Buton animasyonları
+        'pulse-scale-left': 'pulseScaleLeft 2.5s ease-in-out infinite',
+        'pulse-scale-right': 'pulseScaleRight 2.5s ease-in-out infinite',
         'ping-slow': 'pingSlow 2s ease-out infinite',
         'ping-slow-delayed': 'pingSlow 2s ease-out infinite 1s',
-        'subtle-move-left': 'subtleMoveLeft 2.5s ease-in-out infinite',
-        'subtle-move-right': 'subtleMoveRight 2.5s ease-in-out infinite',
+        'subtle-move-left': 'subtleMoveLeft 3s ease-in-out infinite',
+        'subtle-move-right': 'subtleMoveRight 3s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -51,44 +51,44 @@ export default {
             opacity: "1" 
           },
         },
-        // GÜÇLÜ SCALE DEĞİŞİMİ
+        // Buton keyframe'leri
         pulseScaleLeft: {
           '0%, 100%': { 
-            transform: 'scale(0.95)',
-            opacity: '0.8'
+            transform: 'scale(1)',
+            opacity: '1'
           },
           '50%': { 
-            transform: 'scale(1.15)',
-            opacity: '1'
+            transform: 'scale(1.08)',
+            opacity: '0.9'
           }
         },
         pulseScaleRight: {
           '0%, 100%': { 
-            transform: 'scale(0.95)',
-            opacity: '0.8'
+            transform: 'scale(1)',
+            opacity: '1'
           },
           '50%': { 
-            transform: 'scale(1.15)',
-            opacity: '1'
+            transform: 'scale(1.08)',
+            opacity: '0.9'
           }
         },
         pingSlow: {
           '0%': { 
             transform: 'scale(1)', 
-            opacity: '0.5' 
+            opacity: '0.4' 
           },
           '100%': { 
-            transform: 'scale(1.5)', 
+            transform: 'scale(1.3)', 
             opacity: '0' 
           }
         },
         subtleMoveLeft: {
           '0%, 100%': { transform: 'translateX(0)' },
-          '50%': { transform: 'translateX(-3px)' }
+          '50%': { transform: 'translateX(-2px)' }
         },
         subtleMoveRight: {
           '0%, 100%': { transform: 'translateX(0)' },
-          '50%': { transform: 'translateX(3px)' }
+          '50%': { transform: 'translateX(2px)' }
         }
       },
     },
