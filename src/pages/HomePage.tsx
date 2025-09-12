@@ -876,9 +876,9 @@ const HomePage: React.FC<HomePageProps> = ({
           <div className="absolute -bottom-12 left-0 right-0 px-6">
             {featuredApartments.length > 0 && (
               <div className="w-full max-w-5xl mx-auto">
-                <p className="text-white/60 text-center mb-3 text-[10px] uppercase tracking-wider">
+                <h3 className="text-white/80 text-center mb-4 text-sm uppercase tracking-wider font-medium">
                   {t.featured || 'Öne Çıkan Daireler'}
-                </p>
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {featuredApartments.map((apt, index) => (
                     <div
