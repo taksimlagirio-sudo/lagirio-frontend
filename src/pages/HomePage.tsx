@@ -847,8 +847,8 @@ const HomePage: React.FC<HomePageProps> = ({
 
         {/* Main Content */}
         <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6 py-16">
-          {/* LOGO - HOME SWEET KALINLIĞI AZALTILDI */}
-          <div className="mb-8">
+          {/* LOGO */}
+          <div className="mb-10">
             <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
               Home Sweet
             </p>
@@ -859,19 +859,19 @@ const HomePage: React.FC<HomePageProps> = ({
             </h1>
           </div>
 
-          {/* Navigation Hint */}
-          <div className="mb-8 text-center">
-            <p className="text-white/70 text-sm flex items-center justify-center gap-2">
-              <ChevronRight size={18} className="text-white/50" />
-              <span>{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
-              <ChevronLeft size={18} className="text-white/50" />
+          {/* Navigation Hint - BOYUTLAR ARTTIRILDI */}
+          <div className="mb-12 text-center">
+            <p className="text-white/80 text-base flex items-center justify-center gap-3">
+              <ChevronRight size={22} className="text-white/60" />
+              <span className="font-medium">{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
+              <ChevronLeft size={22} className="text-white/60" />
             </p>
           </div>
 
-          {/* Featured Apartments - 3 KOLON AMA DAR VE UZUN KARTLAR */}
+          {/* Featured Apartments - DAHA AŞAĞIDA VE ARTIRILMIŞ BOŞLUK */}
           {featuredApartments.length > 0 && (
-            <div className="w-full max-w-4xl mx-auto">
-              <h3 className="text-white/80 text-center mb-4 text-sm uppercase tracking-wider font-medium">
+            <div className="w-full max-w-4xl mx-auto mt-8">
+              <h3 className="text-white/80 text-center mb-5 text-sm uppercase tracking-wider font-medium">
                 {t.featured || 'Öne Çıkan Daireler'}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
