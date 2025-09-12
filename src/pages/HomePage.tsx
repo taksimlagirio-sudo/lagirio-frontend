@@ -704,18 +704,104 @@ const HomePage: React.FC<HomePageProps> = ({
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/60" />
         </div>
 
-        {/* Swipe Indicators */}
-        <div className={`absolute left-8 top-1/2 -translate-y-1/2 transition-all duration-300 z-20 ${
-          slideProgress < -0.1 ? 'scale-110 text-[#CD853F]' : 'text-white/50'
-        }`}>
-          <ChevronRight size={40} className={slideProgress > 0.1 ? 'animate-pulse' : ''} />
-        </div>
+        {/* Animated Navigation Buttons - YENİ GÜNCELLENMİŞ KISIM */}
+        {/* Sol Buton - Owners Page */}
+        <button
+          onClick={() => {
+            setIsTransitioning(true);
+            setSlideProgress(-1);
+            setTimeout(() => {
+              setCurrentView("owners");
+              setSlideProgress(0);
+              setIsTransitioning(false);
+            }, 700);
+          }}
+          className={`absolute left-6 top-1/2 -translate-y-1/2 z-20 group ${
+            slideProgress < -0.1 ? 'scale-105' : ''
+          }`}
+          aria-label={t.goToPropertyOwners || 'Go to property owners page'}
+        >
+          <div className="relative">
+            {/* Animated Background Circle */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0a2e23] to-[#1a4a3a] rounded-full 
+                            w-14 h-14 animate-pulse opacity-30 group-hover:opacity-50 transition-opacity" />
+            
+            {/* Main Button */}
+            <div className="relative bg-black/30 backdrop-blur-md rounded-full w-14 h-14 
+                            flex items-center justify-center border-2 border-white/20
+                            group-hover:bg-[#0a2e23]/80 group-hover:border-[#0a2e23] 
+                            transition-all duration-300 group-hover:scale-110">
+              <ChevronLeft 
+                size={28} 
+                className="text-white group-hover:text-[#f5e6d3] transition-colors"
+              />
+            </div>
+            
+            {/* Floating Label */}
+            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
+                            opacity-0 group-hover:opacity-100 transition-all duration-300
+                            pointer-events-none whitespace-nowrap">
+              <div className="bg-[#0a2e23] text-white px-3 py-1.5 rounded-lg text-sm font-medium
+                              shadow-lg">
+                {t.propertyOwners || 'Ev Sahipleri'}
+              </div>
+            </div>
+            
+            {/* Ripple Effect on Hover */}
+            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-white opacity-0 group-hover:animate-ping" />
+            </div>
+          </div>
+        </button>
 
-        <div className={`absolute right-8 top-1/2 -translate-y-1/2 transition-all duration-300 z-20 ${
-          slideProgress > 0.1 ? 'scale-110 text-[#ff9800]' : 'text-white/50'
-        }`}>
-          <ChevronLeft size={40} className={slideProgress < -0.1 ? 'animate-pulse' : ''} />
-        </div>
+        {/* Sağ Buton - Rentals Page */}
+        <button
+          onClick={() => {
+            setIsTransitioning(true);
+            setSlideProgress(1);
+            setTimeout(() => {
+              setCurrentView("rentals");
+              setSlideProgress(0);
+              setIsTransitioning(false);
+            }, 700);
+          }}
+          className={`absolute right-6 top-1/2 -translate-y-1/2 z-20 group ${
+            slideProgress > 0.1 ? 'scale-105' : ''
+          }`}
+          aria-label={t.goToRentals || 'Go to rentals page'}
+        >
+          <div className="relative">
+            {/* Animated Background Circle */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#ff9800] to-[#f57c00] rounded-full 
+                            w-14 h-14 animate-pulse opacity-30 group-hover:opacity-50 transition-opacity" />
+            
+            {/* Main Button */}
+            <div className="relative bg-black/30 backdrop-blur-md rounded-full w-14 h-14 
+                            flex items-center justify-center border-2 border-white/20
+                            group-hover:bg-[#ff9800]/80 group-hover:border-[#ff9800] 
+                            transition-all duration-300 group-hover:scale-110">
+              <ChevronRight 
+                size={28} 
+                className="text-white group-hover:text-white transition-colors"
+              />
+            </div>
+            
+            {/* Floating Label */}
+            <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 
+                            opacity-0 group-hover:opacity-100 transition-all duration-300
+                            pointer-events-none whitespace-nowrap">
+              <div className="bg-[#ff9800] text-white px-3 py-1.5 rounded-lg text-sm font-medium
+                              shadow-lg">
+                {t.rentalsAndTours || 'Kiralık Daireler'}
+              </div>
+            </div>
+            
+            {/* Ripple Effect on Hover */}
+            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-white opacity-0 group-hover:animate-ping" />
+            </div>
+          </div>
+        </button>
 
         {/* Language Selector */}
         <div className="absolute top-6 right-6 z-30">

@@ -17,9 +17,10 @@ export default {
       },
       animation: {
         fadeIn: "fadeIn 0.3s ease-in-out",
+        'fade-in': "fadeIn 0.6s ease-in-out", // HomePage için eklendi
         slideUp: "slideUp 0.3s ease-in-out",
-        slideIn: "slideIn 0.3s ease-out", // YENİ
-        slideRight: "slideRight 3s linear", // YENİ
+        slideIn: "slideIn 0.3s ease-out",
+        slideRight: "slideRight 3s linear",
       },
       keyframes: {
         fadeIn: {
@@ -34,7 +35,7 @@ export default {
           "0%": { transform: "translateY(20px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
-        slideIn: { // YENİ
+        slideIn: {
           "0%": { 
             transform: "translateX(100%)", 
             opacity: "0" 
