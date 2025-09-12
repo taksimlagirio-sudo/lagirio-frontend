@@ -15,6 +15,7 @@ interface RentalsPageProps {
   setShowLoginModal: (show: boolean) => void;
   setCurrentView: (view: string) => void;
   handleOpenModal: (item: any, type: string) => void;
+  isGlobalSearching?: boolean;
   fetchApartments: (
     checkIn?: string, 
     checkOut?: string, 
@@ -27,7 +28,7 @@ interface RentalsPageProps {
     checkOut: string;
     adults: number;
     children: number;
-    childrenAgeGroups?: { // YENİ
+    childrenAgeGroups?: {
       above7: number;
       between2And7: number;
       under2: number;
@@ -45,6 +46,7 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
   translations,
   setShowLoginModal,
   setCurrentView,
+  isGlobalSearching = false, // YENİ
   handleOpenModal,
   fetchApartments,
   globalSearchParams,
@@ -59,50 +61,7 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
     "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&h=900&fit=crop",
   ];
 
-  // Müsaitlik kontrolü için yardımcı fonksiyon
-  const isDateBooked = (dateStr: string, apartmentId: number) => {
-    const apartment = apartments.find((apt) => apt.id === apartmentId);
-    if (!apartment) return false;
-    
-    return apartment.reservations?.some((res: any) => {
-      const checkIn = new Date(res.checkIn);
-      const checkOut = new Date(res.checkOut);
-      const currentDate = new Date(dateStr);
-      return currentDate >= checkIn && currentDate < checkOut;
-    });
-  };
-
-  // Müsaitlik durumu hesaplama
-  const getAvailabilityStatus = (apartment: any) => {
-    if (!globalSearchParams.checkIn || !globalSearchParams.checkOut) {
-      return { available: true, percentage: 100 };
-    }
-    
-    const checkIn = new Date(globalSearchParams.checkIn);
-    const checkOut = new Date(globalSearchParams.checkOut);
-    const totalDays = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-    let bookedDays = 0;
-
-    for (let d = new Date(checkIn); d < checkOut; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split("T")[0];
-      if (isDateBooked(dateStr, apartment.id)) {
-        bookedDays++;
-      }
-    }
-
-    const availablePercentage = Math.round(
-      ((totalDays - bookedDays) / totalDays) * 100
-    );
-
-    return {
-      available: bookedDays === 0,
-      percentage: availablePercentage,
-      bookedDays: bookedDays,
-      totalDays: totalDays,
-    };
-  };
-
-  // Custom smooth scroll fonksiyonu
+  // Smooth scroll
   const smoothScrollTo = (elementId: string, duration = 1500) => {
     const element = document.getElementById(elementId);
     if (!element) return;
@@ -132,53 +91,81 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
     requestAnimationFrame(animation);
   };
 
-  // GÜNCELLENEN handleSearch fonksiyonu
-  const handleSearch = async () => {
-    console.log('handleSearch çağrıldı!');
-    console.log('Search params:', globalSearchParams);
+  // ARAMA FONKSİYONU - SearchBar'dan gelen parametrelerle çalışır
+  const handleSearch = (searchData: any) => {
+    console.log('Arama yapılıyor:', searchData);
     
-    setIsSearching(true);
+    setGlobalSearchParams(searchData);
+    // setIsSearching'i kaldırın, çünkü App.tsx hallediyor
+    
     smoothScrollTo("apartments-section", 1500);
     
-    if (globalSearchParams.checkIn && globalSearchParams.checkOut) {
-      console.log('Tarihler var, fetchApartments çağrılıyor...');
-      
-      await fetchApartments(
-        globalSearchParams.checkIn, 
-        globalSearchParams.checkOut,
-        globalSearchParams.adults,
-        globalSearchParams.children,
-        globalSearchParams.childrenAgeGroups
+    if (searchData.checkIn && searchData.checkOut) {
+      fetchApartments(
+        searchData.checkIn,
+        searchData.checkOut,
+        searchData.adults,
+        searchData.children,
+        searchData.childrenAgeGroups
       );
-      
-      console.log('fetchApartments tamamlandı');
-      
-      setTimeout(() => {
-        setIsSearching(false);
-      }, 800);
-    } else {
-      console.log('Tarihler yok!');
-      setIsSearching(false);
     }
   };
 
-  // GÜNCELLENEN KAPASİTE FİLTRELEME - Yeni sistem için
-  const getFilteredApartments = () => {
-    // Eğer tarih seçilmişse, backend zaten filtreleme yaptı
-    if (globalSearchParams.checkIn && globalSearchParams.checkOut) {
-      return apartments; // Backend'den gelen filtrelenmiş veriyi direkt kullan
+  // Müsaitlik kontrolleri
+  const isDateBooked = (dateStr: string, apartmentId: number) => {
+    const apartment = apartments.find((apt) => apt.id === apartmentId);
+    if (!apartment) return false;
+    
+    return apartment.reservations?.some((res: any) => {
+      const checkIn = new Date(res.checkIn);
+      const checkOut = new Date(res.checkOut);
+      const currentDate = new Date(dateStr);
+      return currentDate >= checkIn && currentDate < checkOut;
+    });
+  };
+
+  const getAvailabilityStatus = (apartment: any) => {
+    if (!globalSearchParams.checkIn || !globalSearchParams.checkOut) {
+      return { available: true, percentage: 100 };
     }
     
-    // Tarih seçilmemişse, sadece basit kapasite kontrolü yap
+    const checkIn = new Date(globalSearchParams.checkIn);
+    const checkOut = new Date(globalSearchParams.checkOut);
+    const totalDays = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    let bookedDays = 0;
+
+    for (let d = new Date(checkIn); d < checkOut; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split("T")[0];
+      if (isDateBooked(dateStr, apartment.id)) {
+        bookedDays++;
+      }
+    }
+
+    const availablePercentage = Math.round(
+      ((totalDays - bookedDays) / totalDays) * 100
+    );
+
+    return {
+      available: bookedDays === 0,
+      percentage: availablePercentage,
+      bookedDays: bookedDays,
+      totalDays: totalDays,
+    };
+  };
+
+  // Filtreleme
+  const getFilteredApartments = () => {
+    if (globalSearchParams.checkIn && globalSearchParams.checkOut) {
+      return apartments;
+    }
+    
     return apartments.filter((apt) => {
       const totalGuests = globalSearchParams.adults + globalSearchParams.children;
       
-      // Yeni sistem kontrolü (maxCapacity)
       if (apt.maxCapacity) {
         return apt.maxCapacity >= totalGuests;
       }
       
-      // Eski sistem için geriye dönük uyumluluk (capacity)
       if (apt.capacity) {
         return apt.capacity >= totalGuests;
       }
@@ -198,7 +185,6 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
         setCurrentView={setCurrentView}
       />
       
-      {/* Hero Section with Background */}
       <HeroSection
         backgroundImages={backgroundImages}
         searchFilters={globalSearchParams}
@@ -209,10 +195,8 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
         tagline={t.tagline}
       />
 
-      {/* İş Ortakları ve Puanlarımız */}
       <PartnerSection currentLang={currentLang} translations={translations} />
 
-      {/* Dairelerimiz Section */}
       <ApartmentsSection
         apartments={apartments}
         filteredApartments={getFilteredApartments()}
@@ -222,11 +206,10 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
         currentLang={currentLang}
         onOpenModal={handleOpenModal}
         getAvailabilityStatus={getAvailabilityStatus}
-        isSearching={isSearching}
+        isSearching={isGlobalSearching || isSearching} // YENİ - Her ikisini de kontrol et
         onShowLoginModal={() => setShowLoginModal(true)}
       />
 
-      {/* Turlar Section */}
       <ToursSection
         tours={tours}
         siteImages={siteImages}
@@ -235,12 +218,6 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
         onOpenModal={handleOpenModal}
         onShowLoginModal={() => setShowLoginModal(true)} 
       />
-
-      {/* ContactSection'ı KALDIR */}
-      {/* <ContactSection 
-        translations={translations}
-        currentLang={currentLang}
-      /> */}
     </div>
   );
 };

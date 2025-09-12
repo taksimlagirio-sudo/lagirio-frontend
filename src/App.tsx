@@ -215,6 +215,8 @@ const AppContent: React.FC = () => {
   const [tours, setTours] = useState<any[]>([]);
   const [siteImages, setSiteImages] = useState(defaultSiteImages);
 
+  const [isGlobalSearching, setIsGlobalSearching] = useState(false);
+
   // Modal States
   const [activeModal, setActiveModal] = useState<'login' | 'register' | 'forgotPassword' | 'detail' | 'reservation' | null>(null);
 
@@ -340,6 +342,12 @@ const AppContent: React.FC = () => {
     childrenAgeGroups?: { above7: number; between2And7: number; under2: number }
   ) => {
     try {
+      // ARAMA YAPILIYORSA ÖNCELİKLE APARTMENTS'I BOŞALT VE SEARCHING'İ TRUE YAP
+      if (checkIn && checkOut) {
+        setApartments([]);
+        setIsGlobalSearching(true); // YENİ
+      }
+      
       let data;
       
       if (checkIn && checkOut) {
@@ -354,7 +362,6 @@ const AppContent: React.FC = () => {
         });
         
         console.log('Backend response:', data);
-        console.log('İlk dairenin fiyat bilgisi:', data[0]?.calculatedTotalPrice);
       } else {
         data = await apartmentAPI.getAll();
       }
@@ -365,10 +372,18 @@ const AppContent: React.FC = () => {
         reservations: apt.reservations || []
       }));
       
+      // Data geldiğinde apartments'ı doldur
       setApartments(apartmentsWithReservations);
+      
+      // Biraz bekleyip searching'i kapat
+      setTimeout(() => {
+        setIsGlobalSearching(false); // YENİ
+      }, 300);
+      
     } catch (error) {
       console.error('Daireler yüklenemedi:', error);
       addToast('Daireler yüklenemedi', 'error');
+      setIsGlobalSearching(false); // YENİ - Hata durumunda da kapat
     }
   };
 
@@ -1009,7 +1024,8 @@ const handleLogin = async () => {
     modalItemType,
     formData,
     setFormData,
-    addToast
+    addToast,
+    isGlobalSearching
   };
 
     return (

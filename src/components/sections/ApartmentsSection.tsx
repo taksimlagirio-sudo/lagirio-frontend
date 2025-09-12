@@ -171,7 +171,10 @@ const ApartmentsSection: React.FC<ApartmentsSectionProps> = ({
 
   // Gösterilecek daireleri belirle
   let displayedApartments;
-  if (!expanded) {
+  if (isSearching) {
+    // Arama yapılıyorsa boş array döndür (skeleton gösterilsin)
+    displayedApartments = [];
+  } else if (!expanded) {
     displayedApartments = categoryFilteredApartments.slice(0, initialItemsCount);
   } else {
     const startIndex = (currentPage - 1) * itemsPerPage;

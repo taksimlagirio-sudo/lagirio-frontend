@@ -11,7 +11,7 @@ interface HeroSectionProps {
     children: number;
   };
   setSearchFilters: (filters: any) => void;
-  onSearch: () => void;
+  onSearch: (params?: any) => void; // Parametre alabilir
   translations: any;
   currentLang: string;
   tagline: string;
@@ -24,7 +24,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onSearch,
   translations,
   currentLang,
-  tagline
+  tagline,
 }) => {
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -165,8 +165,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <SearchBar
               searchFilters={searchFilters}
               setSearchFilters={setSearchFilters}
-              onSearch={() => {
-                onSearch();
+              onSearch={(params) => {
+                onSearch(params); // Parametreyi ilet
                 setShowMobileSearch(false);
               }}
               translations={translations}

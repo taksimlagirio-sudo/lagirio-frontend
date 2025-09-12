@@ -1,5 +1,3 @@
-// components/common/SearchBar.tsx
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Search, ChevronDown, ChevronLeft, ChevronRight, Baby } from 'lucide-react';
 import { monthNames, dayNames, getDaysInMonth, getFirstDayOfMonth } from '../../utils/dateHelpers';
@@ -19,7 +17,7 @@ interface SearchFilters {
 interface SearchBarProps {
   searchFilters: SearchFilters;
   setSearchFilters: (filters: SearchFilters) => void;
-  onSearch: () => void;
+  onSearch: (searchData: SearchFilters) => void; // Açık ve net: SearchFilters alıyor
   translations: any;
   currentLang: string;
   isMobileModal?: boolean;
@@ -27,7 +25,6 @@ interface SearchBarProps {
 
 const getTurkeyDate = () => {
   const now = new Date();
-  // Türkiye UTC+3
   const turkeyTime = new Date(now.getTime() + (3 * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
   return turkeyTime;
 };
@@ -43,14 +40,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   translations,
   currentLang,
-  isMobileModal = false
+  isMobileModal = false,
 }) => {
   const t = translations[currentLang];
   
-  // Local state - parent'tan gelen filtreleri başlangıç değeri olarak kullan
+  // Local state
   const [localFilters, setLocalFilters] = useState(initialFilters);
   
-  // Parent'tan gelen filtreler değiştiğinde local state'i güncelle
+  // Parent'tan gelen değişiklikleri takip et
   useEffect(() => {
     setLocalFilters(initialFilters);
   }, [initialFilters]);
@@ -60,14 +57,23 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [currentMonth, setCurrentMonth] = useState(getTurkeyDate());
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   
-  // Çocuk yaş grupları için state
+  // Çocuk yaş grupları state'i
   const [childrenAgeGroups, setChildrenAgeGroups] = useState({
     above7: localFilters.childrenAgeGroups?.above7 || 0,
     between2And7: localFilters.childrenAgeGroups?.between2And7 || 0,
     under2: localFilters.childrenAgeGroups?.under2 || 0
   });
+
+  // Parent'tan gelen childrenAgeGroups değişikliklerini takip et
+  useEffect(() => {
+    setChildrenAgeGroups({
+      above7: initialFilters.childrenAgeGroups?.above7 || 0,
+      between2And7: initialFilters.childrenAgeGroups?.between2And7 || 0,
+      under2: initialFilters.childrenAgeGroups?.under2 || 0
+    });
+  }, [initialFilters.childrenAgeGroups]);
   
-  // Dile göre ay ve gün isimleri
+  // Dil ayarları (kısaltılmış)
   const localMonthNames = currentLang === 'tr' ? monthNames : 
     currentLang === 'en' ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] :
     currentLang === 'ar' ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'] :
@@ -80,12 +86,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
     currentLang === 'ru' ? ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] :
     dayNames;
 
-  // Çocuk yaş gruplarını güncelle - LOCAL STATE İLE
+  // Çocuk yaş gruplarını güncelle
   const updateChildrenAgeGroups = (group: 'above7' | 'between2And7' | 'under2', value: number) => {
     const newGroups = { ...childrenAgeGroups, [group]: value };
     setChildrenAgeGroups(newGroups);
     
-    // Toplam çocuk sayısını güncelle - LOCAL
     const totalChildren = newGroups.above7 + newGroups.between2And7 + newGroups.under2;
     setLocalFilters({ 
       ...localFilters, 
@@ -94,7 +99,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     });
   };
 
-  // Çocuk sayısı değiştiğinde yaş gruplarını sıfırla - LOCAL
+  // Çocuk sayısı değişimi
   const handleChildrenChange = (newCount: number) => {
     if (newCount === 0) {
       setChildrenAgeGroups({ above7: 0, between2And7: 0, under2: 0 });
@@ -108,43 +113,39 @@ const SearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
-  // Tarih seçimi - LOCAL STATE İLE VE setShowDatePicker(false) KALDIRILIYOR
+  // Tarih seçimi
   const handleDateSelect = (dateStr: string) => {
     if (!localFilters.checkIn || localFilters.checkOut) {
       setLocalFilters({ ...localFilters, checkIn: dateStr, checkOut: '' });
     } else {
       if (dateStr > localFilters.checkIn) {
         setLocalFilters({ ...localFilters, checkOut: dateStr });
-        // setShowDatePicker(false); // KALDIRILDI
       } else {
         setLocalFilters({ ...localFilters, checkIn: dateStr, checkOut: '' });
       }
     }
   };
 
-  // Arama butonuna tıklandığında
+  // ARAMA FONKSİYONU - ÇOK BASİT
   const handleSearch = () => {
-    onFiltersChange(localFilters); // Parent'a gönder
-    onSearch(); // Arama fonksiyonunu çağır
+    // Parent state'ini güncelle
+    onFiltersChange(localFilters);
+    
+    // Direkt local değerlerle arama yap
+    onSearch(localFilters);
   };
-
+  
+  // Component geri kalanı aynı...
   return (
     <div className={`${isMobileModal ? '' : 'bg-[#f5e6d3] rounded-2xl p-6 shadow-xl'}`}>
-      <div className={`
-        ${isMobileModal 
-          ? 'flex flex-col space-y-4' 
-          : 'grid md:grid-cols-4 gap-4 items-center'
-        }
-      `}>
+      {/* Tüm JSX kodunuz aynı kalacak, sadece handleSearch değişti */}
+      {/* Date picker, guest selector vs. hepsi aynı */}
+      <div className={`${isMobileModal ? 'flex flex-col space-y-4' : 'grid md:grid-cols-4 gap-4 items-center'}`}>
         {/* Date Selection */}
         <div className={`relative date-picker-container ${isMobileModal ? 'w-full' : 'md:col-span-2'}`}>
           <button
             onClick={() => setShowDatePicker(!showDatePicker)}
-            className={`
-              w-full px-4 py-3 bg-white rounded-lg flex items-center justify-between 
-              hover:bg-gray-50 transition-colors
-              ${isMobileModal ? 'text-base' : ''}
-            `}
+            className={`w-full px-4 py-3 bg-white rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors ${isMobileModal ? 'text-base' : ''}`}
           >
             <div className="flex items-center space-x-2">
               <Calendar size={20} className="text-[#0a2e23]" />
@@ -159,15 +160,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
             <ChevronDown size={20} className="text-[#0a2e23]" />
           </button>
 
+          {/* Date picker modal - aynı kalacak */}
           {showDatePicker && (
-            <div className={`
-              absolute top-full mt-2 bg-white rounded-lg shadow-xl p-4 z-50 
-              ${isMobileModal 
-                ? 'left-0 right-0 mx-4'
-                : 'w-full md:w-[500px]'
-              }
-            `}>
-              {/* Calendar */}
+            <div className={`absolute top-full mt-2 bg-white rounded-lg shadow-xl p-4 z-50 ${isMobileModal ? 'left-0 right-0 mx-4' : 'w-full md:w-[500px]'}`}>
+              {/* Calendar içeriği aynı */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <button
@@ -195,7 +191,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   </button>
                 </div>
 
-                {/* Day names */}
+                {/* Gün isimleri */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {localDayNames.map((day) => (
                     <div key={day} className={`text-center text-gray-500 font-medium py-1 ${isMobileModal ? 'text-xs' : 'text-xs'}`}>
@@ -204,7 +200,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   ))}
                 </div>
 
-                {/* Calendar days */}
+                {/* Takvim günleri */}
                 <div className="grid grid-cols-7 gap-1">
                   {Array.from({
                     length: getFirstDayOfMonth(currentMonth) === 0 ? 6 : getFirstDayOfMonth(currentMonth) - 1,
@@ -214,12 +210,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
                   {Array.from({ length: getDaysInMonth(currentMonth) }).map((_, i) => {
                     const day = i + 1;
-                    const dateStr = `${currentMonth.getFullYear()}-${String(
-                      currentMonth.getMonth() + 1
-                    ).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                     const isToday = dateStr === getTurkeyDateString();
-                    const isInRange = localFilters.checkIn && localFilters.checkOut && 
-                                    dateStr > localFilters.checkIn && dateStr < localFilters.checkOut;
+                    const isInRange = localFilters.checkIn && localFilters.checkOut && dateStr > localFilters.checkIn && dateStr < localFilters.checkOut;
                     const isBooked = false;
                     const isPast = dateStr < getTurkeyDateString();
                     const isHovered = dateStr === hoveredDate;
@@ -252,7 +245,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 </div>
               </div>
 
-              {/* Actions */}
+              {/* Aksiyonlar */}
               <div className="flex justify-between items-center pt-4 border-t">
                 <button
                   onClick={() => {
@@ -273,15 +266,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
         </div>
 
-        {/* Guests */}
+        {/* Misafirler */}
         <div className={`relative ${isMobileModal ? 'w-full' : ''}`}>
           <button
             onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}
-            className={`
-              w-full px-4 py-3 bg-white rounded-lg flex items-center justify-between 
-              hover:bg-gray-50 transition-colors h-14
-              ${isMobileModal ? 'text-base' : ''}
-            `}
+            className={`w-full px-4 py-3 bg-white rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors h-14 ${isMobileModal ? 'text-base' : ''}`}
           >
             <div className="flex items-center space-x-2">
               <Users size={20} className="text-[#0a2e23] flex-shrink-0" />
@@ -294,14 +283,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
           </button>
 
           {showGuestsDropdown && (
-            <div className={`
-              absolute top-full mt-2 bg-white rounded-lg shadow-lg p-4 z-50
-              ${isMobileModal 
-                ? 'left-0 right-0'
-                : 'w-full'
-              }
-            `}>
-              {/* Adults */}
+            <div className={`absolute top-full mt-2 bg-white rounded-lg shadow-lg p-4 z-50 ${isMobileModal ? 'left-0 right-0' : 'w-full'}`}>
+              {/* Yetişkinler */}
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-700">{t.adults}</span>
                 <div className="flex items-center space-x-3">
@@ -321,7 +304,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 </div>
               </div>
 
-              {/* Children */}
+              {/* Çocuklar */}
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-700">{t.children}</span>
                 <div className="flex items-center space-x-3">
@@ -341,7 +324,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 </div>
               </div>
 
-              {/* Çocuk Yaş Grupları */}
+              {/* Çocuk yaş grupları - aynı kalacak */}
               {localFilters.children > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-center mb-3">
@@ -441,7 +424,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 </div>
               )}
 
-              {/* Kapat butonu */}
               <div className="mt-4 pt-4 border-t">
                 <button
                   onClick={() => setShowGuestsDropdown(false)}
@@ -454,16 +436,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
         </div>
 
-        {/* Search Button - GÜNCELLENEN */}
+        {/* Arama butonu */}
         <button
           onClick={handleSearch}
           disabled={localFilters.children > 0 && (childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2) !== localFilters.children}
-          className={`
-            w-full bg-[#0a2e23] text-white px-6 py-3 rounded-lg hover:bg-[#0f4a3a] 
-            transition-colors flex items-center justify-center space-x-2 h-14 
-            disabled:opacity-50 disabled:cursor-not-allowed
-            ${isMobileModal ? 'mt-8 text-lg font-semibold' : ''}
-          `}
+          className={`w-full bg-[#0a2e23] text-white px-6 py-3 rounded-lg hover:bg-[#0f4a3a] transition-colors flex items-center justify-center space-x-2 h-14 disabled:opacity-50 disabled:cursor-not-allowed ${isMobileModal ? 'mt-8 text-lg font-semibold' : ''}`}
         >
           <Search size={20} />
           <span>{t.searchApartments || 'Ara'}</span>
