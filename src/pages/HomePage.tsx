@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Building, Home, Globe, ChevronLeft, ChevronRight, MapPin, Bed, Users } from 'lucide-react';
+import { Globe, ChevronLeft, ChevronRight, MapPin, Bed, Users } from 'lucide-react';
 import HeroSection from '../components/sections/HeroSection';
 import PartnerSection from '../components/sections/PartnerSection';
 import OwnersPage from '../pages/OwnersPage';
