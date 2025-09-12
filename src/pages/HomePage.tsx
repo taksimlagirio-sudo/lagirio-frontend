@@ -847,15 +847,6 @@ const HomePage: React.FC<HomePageProps> = ({
                 </span>
               </h1>
             </div>
-
-            {/* Navigation Hint */}
-            <div className="text-center">
-              <p className="text-white/80 text-base flex items-center justify-center gap-3">
-                <ChevronRight size={22} className="text-white/60" />
-                <span className="font-medium">{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
-                <ChevronLeft size={22} className="text-white/60" />
-              </p>
-            </div>
           </div>
 
           {/* ÖNE ÇIKAN DAİRELER - EKRANIN ALTINDA/DIŞINDA */}
