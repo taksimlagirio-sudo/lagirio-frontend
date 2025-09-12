@@ -829,7 +829,7 @@ export const translations = {
     ourTours: "Our Tours",
     featured: "Our Featured Apartments",
     featuredSubtitle: "Our most popular accommodation options",
-    pullLeftAndRight: "Pull left and rıght to browse",
+    pullLeftAndRight: "Pull left and right to browse",
     pullLeftAndRightmb: "Pull left and rıght to browse",
 
     // General

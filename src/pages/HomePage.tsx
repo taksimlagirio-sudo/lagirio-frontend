@@ -700,8 +700,8 @@ const HomePage: React.FC<HomePageProps> = ({
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/60" />
         </div>
 
-        {/* RENKLI GLOW'LU NAVİGASYON BUTONLARI */}
-        {/* Sol Buton - Owners'a gider - YEŞİL GLOW */}
+        {/* RENKLI GLOW'LU NAVİGASYON BUTONLARI - ZARİF VE BELİRGİN */}
+        {/* Sol Buton - Owners'a gider - YEŞİL GLOW VE ANİMASYON */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -717,32 +717,37 @@ const HomePage: React.FC<HomePageProps> = ({
           className="nav-button absolute left-8 top-1/2 -translate-y-1/2 z-30 group"
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <div className="relative">
-            {/* Yeşil breathing glow - HAFİF */}
-            <div className="absolute -inset-3 bg-[#0a2e23]/10 rounded-2xl blur-2xl animate-pulse" />
+          <div className="relative animate-pulse-scale-left">
+            {/* Yeşil breathing glow - HAREKETLİ */}
+            <div className="absolute -inset-4 bg-[#0a2e23]/25 rounded-2xl blur-2xl animate-pulse" />
             
-            {/* Yeşil sabit glow - HAFİF */}
-            <div className="absolute -inset-2 bg-[#0a2e23]/8 rounded-2xl blur-xl" />
+            {/* Yeşil orta glow */}
+            <div className="absolute -inset-3 bg-[#0a2e23]/20 rounded-2xl blur-xl" />
+            
+            {/* Sürekli genişleyen halka */}
+            <div className="absolute -inset-1 rounded-2xl animate-ping-slow">
+              <div className="h-full w-full rounded-2xl border border-[#0a2e23]/40" />
+            </div>
             
             {/* İnce çizgi */}
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-20 h-[1px] 
-                          bg-gradient-to-r from-transparent to-[#0a2e23]/20
-                          group-hover:to-[#0a2e23]/40 transition-all duration-500" />
+                          bg-gradient-to-r from-transparent to-[#0a2e23]/30
+                          group-hover:to-[#0a2e23]/50 transition-all duration-500" />
             
-            {/* Ana buton */}
-            <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl 
+            {/* Ana buton - CANLI */}
+            <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl 
                           w-16 h-16 flex items-center justify-center
-                          border border-white/10 
-                          group-hover:border-[#0a2e23]/50
-                          group-hover:bg-[#0a2e23]/10
+                          border border-white/25 
+                          group-hover:border-[#0a2e23]/60
+                          group-hover:bg-[#0a2e23]/20
                           transition-all duration-500
-                          group-hover:scale-110
-                          shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.05)]
-                          group-hover:shadow-[0_8px_32px_rgba(10,46,35,0.3)]">
+                          group-hover:scale-115
+                          shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.1),0_0_25px_rgba(10,46,35,0.4)]
+                          group-hover:shadow-[0_8px_35px_rgba(10,46,35,0.6)]">
               <ChevronRight 
                 size={28} 
-                className="text-white/70 group-hover:text-white transition-all duration-300
-                          group-hover:translate-x-0.5"
+                className="text-white/80 group-hover:text-white transition-all duration-300
+                          group-hover:-translate-x-0.5 animate-subtle-move-left"
                 strokeWidth={1.5}
               />
             </div>
@@ -759,7 +764,7 @@ const HomePage: React.FC<HomePageProps> = ({
           </div>
         </button>
 
-        {/* Sağ Buton - Rentals'a gider - TURUNCU GLOW */}
+        {/* Sağ Buton - Rentals'a gider - TURUNCU GLOW VE ANİMASYON */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -775,32 +780,37 @@ const HomePage: React.FC<HomePageProps> = ({
           className="nav-button absolute right-8 top-1/2 -translate-y-1/2 z-30 group"
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <div className="relative">
-            {/* Turuncu breathing glow - HAFİF */}
-            <div className="absolute -inset-3 bg-[#ff9800]/10 rounded-2xl blur-2xl animate-pulse" />
+          <div className="relative animate-pulse-scale-right">
+            {/* Turuncu breathing glow - HAREKETLİ */}
+            <div className="absolute -inset-4 bg-[#ff9800]/25 rounded-2xl blur-2xl animate-pulse" />
             
-            {/* Turuncu sabit glow - HAFİF */}
-            <div className="absolute -inset-2 bg-[#ff9800]/8 rounded-2xl blur-xl" />
+            {/* Turuncu orta glow */}
+            <div className="absolute -inset-3 bg-[#ff9800]/20 rounded-2xl blur-xl" />
+            
+            {/* Sürekli genişleyen halka */}
+            <div className="absolute -inset-1 rounded-2xl animate-ping-slow-delayed">
+              <div className="h-full w-full rounded-2xl border border-[#ff9800]/40" />
+            </div>
             
             {/* İnce çizgi */}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-20 h-[1px] 
-                          bg-gradient-to-l from-transparent to-[#ff9800]/20
-                          group-hover:to-[#ff9800]/40 transition-all duration-500" />
+                          bg-gradient-to-l from-transparent to-[#ff9800]/30
+                          group-hover:to-[#ff9800]/50 transition-all duration-500" />
             
-            {/* Ana buton */}
-            <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl 
+            {/* Ana buton - CANLI */}
+            <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl 
                           w-16 h-16 flex items-center justify-center
-                          border border-white/10 
-                          group-hover:border-[#ff9800]/50
-                          group-hover:bg-[#ff9800]/10
+                          border border-white/25 
+                          group-hover:border-[#ff9800]/60
+                          group-hover:bg-[#ff9800]/20
                           transition-all duration-500
-                          group-hover:scale-110
-                          shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.05)]
-                          group-hover:shadow-[0_8px_32px_rgba(255,152,0,0.3)]">
-              <ChevronLeft 
+                          group-hover:scale-115
+                          shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.1),0_0_25px_rgba(255,152,0,0.4)]
+                          group-hover:shadow-[0_8px_35px_rgba(255,152,0,0.6)]">
+              <ChevronLeft
                 size={28} 
-                className="text-white/70 group-hover:text-white transition-all duration-300
-                          group-hover:-translate-x-0.5"
+                className="text-white/80 group-hover:text-white transition-all duration-300
+                          group-hover:translate-x-0.5 animate-subtle-move-right"
                 strokeWidth={1.5}
               />
             </div>
