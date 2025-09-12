@@ -16,6 +16,32 @@ interface ApartmentsSectionProps {
   onShowLoginModal: () => void;
 }
 
+// Skeleton Card Component - Yükleme sırasında gösterilecek
+const SkeletonCard: React.FC = () => (
+  <div className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
+    {/* Görsel alanı */}
+    <div className="h-48 sm:h-64 bg-gray-200"></div>
+    
+    {/* İçerik alanı */}
+    <div className="p-4">
+      {/* Başlık */}
+      <div className="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
+      
+      {/* Konum */}
+      <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+      
+      {/* Alt bilgiler */}
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <div className="h-8 w-16 bg-gray-200 rounded"></div>
+          <div className="h-8 w-16 bg-gray-200 rounded"></div>
+        </div>
+        <div className="h-10 w-24 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  </div>
+);
+
 const ApartmentsSection: React.FC<ApartmentsSectionProps> = ({
   filteredApartments,
   searchFilters,
@@ -240,9 +266,15 @@ const ApartmentsSection: React.FC<ApartmentsSectionProps> = ({
           {/* İçerik wrapper */}
           <div className={`${expanded ? 'min-h-[400px] sm:min-h-[600px]' : ''}`}>
             {isSearching ? (
-              <div className="text-center py-8 sm:py-12">
-                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-[#ff9800] border-t-transparent mx-auto mb-3 sm:mb-4"></div>
-                <p className="text-gray-600 text-sm sm:text-base">{t.searchingAvailableApartments || 'Müsait daireler aranıyor...'}</p>
+              // Yükleme durumu - Skeleton Cards
+              <div className={`grid gap-3 sm:gap-6 md:gap-8 mb-6 sm:mb-8 ${
+                expanded 
+                  ? 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3'
+                  : 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto'
+              }`}>
+                {[...Array(isMobile ? 4 : 6)].map((_, index) => (
+                  <SkeletonCard key={index} />
+                ))}
               </div>
             ) : displayedApartments.length > 0 ? (
               <>
