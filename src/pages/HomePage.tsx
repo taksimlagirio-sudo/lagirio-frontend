@@ -868,14 +868,14 @@ const HomePage: React.FC<HomePageProps> = ({
             </p>
           </div>
 
-          {/* Featured Apartments - KARTLAR KÜÇÜLTÜLDÜ, BAŞLIK BÜYÜTÜLDÜ */}
+          {/* Featured Apartments - DAR VE UZUN KARTLAR */}
           {featuredApartments.length > 0 && (
-            <div className="w-full max-w-6xl mx-auto">
+            <div className="w-full max-w-5xl mx-auto">
               <h3 className="text-white/80 text-center mb-4 text-sm uppercase tracking-wider font-medium">
                 {t.featured || 'Öne Çıkan Daireler'}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {featuredApartments.map((apt, index) => (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {featuredApartments.slice(0, 4).map((apt, index) => (
                   <div
                     key={apt._id || apt.id}
                     onClick={() => {
@@ -884,42 +884,42 @@ const HomePage: React.FC<HomePageProps> = ({
                     }}
                     className="group cursor-pointer bg-white/5 backdrop-blur-md rounded-lg overflow-hidden
                             border border-white/10 hover:border-white/20
-                            hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]"
+                            hover:bg-white/10 transition-all duration-300 hover:scale-[1.03]"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="relative h-28 overflow-hidden">
+                    <div className="relative h-40 overflow-hidden">
                       <img
                         src={apt.images?.[0]?.url || apt.images?.[0] || '/placeholder.jpg'}
                         alt={`${apt.translations?.[currentLang]?.title || apt.title} - Taksim Lagirio Residence`}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                     </div>
                     <div className="p-3">
-                      <h4 className="text-white font-medium text-xs truncate mb-1.5">
+                      <h4 className="text-white font-medium text-xs truncate mb-2">
                         {apt.translations?.[currentLang]?.title || apt.title}
                       </h4>
-                      <div className="flex items-center justify-between">
-                        <p className="text-white/50 text-[10px] flex items-center gap-1">
-                          <MapPin size={9} />
-                          {apt.district || apt.neighborhood}
-                        </p>
-                        <div className="flex items-center gap-2 text-white/50 text-[10px]">
-                          <span className="flex items-center gap-0.5">
-                            <Bed size={9} />
-                            {apt.bedrooms || 2}
-                          </span>
-                          <span className="flex items-center gap-0.5">
-                            <Users size={9} />
-                            {apt.maxGuests || 4}
-                          </span>
-                        </div>
+                      <p className="text-white/50 text-[10px] flex items-center gap-1 mb-2">
+                        <MapPin size={9} />
+                        {apt.district || apt.neighborhood}
+                      </p>
+                      <div className="flex items-center gap-3 text-white/50 text-[10px] mb-3">
+                        <span className="flex items-center gap-0.5">
+                          <Bed size={9} />
+                          {apt.bedrooms || 2}
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <Users size={9} />
+                          {apt.maxGuests || 4}
+                        </span>
                       </div>
-                      <div className="mt-2 pt-2 border-t border-white/10">
+                      <div className="pt-2 border-t border-white/10">
                         <p className="text-[#ff9800] font-bold text-sm">
                           €{apt.price || apt.basePrice || '100'}
-                          <span className="text-white/50 text-[10px] font-normal ml-1">/{t.perNight || 'gece'}</span>
+                          <span className="text-white/50 text-[10px] font-normal ml-0.5 block">
+                            {t.perNight || 'gece'}
+                          </span>
                         </p>
                       </div>
                     </div>
