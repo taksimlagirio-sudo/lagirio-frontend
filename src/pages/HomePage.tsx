@@ -731,7 +731,7 @@ const HomePage: React.FC<HomePageProps> = ({
             
             {/* Ana buton */}
             <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl 
-                          w-20 h-20 flex items-center justify-center
+                          w-16 h-16 flex items-center justify-center
                           border border-white/10 
                           group-hover:border-[#0a2e23]/50
                           group-hover:bg-[#0a2e23]/10
@@ -789,7 +789,7 @@ const HomePage: React.FC<HomePageProps> = ({
             
             {/* Ana buton */}
             <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl 
-                          w-20 h-20 flex items-center justify-center
+                          w-16 h-16 flex items-center justify-center
                           border border-white/10 
                           group-hover:border-[#ff9800]/50
                           group-hover:bg-[#ff9800]/10
