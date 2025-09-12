@@ -846,9 +846,10 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         {/* Main Content - DÜZGÜN SIRALAMA */}
+        {/* Main Content - DÜZGÜN SIRALAMA */}
         <div className="relative z-20 min-h-screen flex flex-col px-6 py-12">
-          {/* ÜST KISIM - LOGO VE NAVIGATION HINT - DAHA ORTAYA YAKIN */}
-          <div className="flex-1 flex flex-col items-center justify-end pb-4">
+          {/* ÜST KISIM - LOGO VE NAVIGATION HINT - ORTAYA KONUMLANDIRILDI */}
+          <div className="flex-1 flex flex-col items-center justify-center">
             {/* LOGO */}
             <div className="mb-6">
               <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
@@ -874,7 +875,7 @@ const HomePage: React.FC<HomePageProps> = ({
           {/* ORTA BOŞLUK - NAV BUTONLARI İÇİN */}
           <div className="h-32"></div>
 
-          {/* ALT KISIM - ÖNE ÇIKAN DAİRELER - GENİŞLETİLDİ */}
+          {/* ALT KISIM - ÖNE ÇIKAN DAİRELER - DEĞİŞMEDİ */}
           <div className="flex-1 flex flex-col items-center justify-start pt-8">
             {featuredApartments.length > 0 && (
               <div className="w-full max-w-5xl mx-auto">
