@@ -44,6 +44,11 @@ interface SearchParams {
   checkOut: string;
   adults: number;
   children: number;
+  childrenAgeGroups?: {  // ← EKLE
+    above7: number;
+    between2And7: number;
+    under2: number;
+  };
 }
 
 interface ApartmentCardProps {
