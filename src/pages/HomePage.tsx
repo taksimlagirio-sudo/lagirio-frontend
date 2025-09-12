@@ -234,20 +234,6 @@ const HomePage: React.FC<HomePageProps> = ({
     setStartX(0);
   };
 
-  // HomePage arka plan animasyonu
-  const [bgIndex, setBgIndex] = useState(0);
-  const backgrounds = [
-    siteImages.heroMain,
-    siteImages.heroApartments || siteImages.heroMain,
-    siteImages.heroTours || siteImages.heroMain
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBgIndex((prev) => (prev + 1) % backgrounds.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [backgrounds.length]);
 
   // handleSearch fonksiyonu
   const handleSearch = async () => {
@@ -375,19 +361,14 @@ const HomePage: React.FC<HomePageProps> = ({
           <section className="relative min-h-[60vh] flex items-center justify-center">
             {/* Background Images */}
             <div className="absolute inset-0">
-              {backgrounds.map((bg, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 transition-opacity duration-1000 ${
-                    index === bgIndex ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  style={{
-                    backgroundImage: `url(${bg})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center 70%'
-                  }}
-                />
-              ))}
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `url(${siteImages.heroMain})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center 70%'
+                }}
+              />
               <div className="absolute inset-0 bg-black/40"></div>
             </div>
 
@@ -684,19 +665,14 @@ const HomePage: React.FC<HomePageProps> = ({
       >
         {/* Animated Background */}
         <div className="absolute inset-0">
-          {backgrounds.map((bg, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ${
-                index === bgIndex ? 'opacity-100' : 'opacity-0'
-              }`}
-              style={{
-                backgroundImage: `url(${bg})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-            />
-          ))}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${siteImages.heroMain})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/60" />
         </div>
 
