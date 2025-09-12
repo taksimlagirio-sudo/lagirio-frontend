@@ -134,10 +134,13 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
 
   // GÜNCELLENEN handleSearch fonksiyonu
   const handleSearch = async () => {
+    // İLK ÖNCE loading'i başlat
     setIsSearching(true);
     
-    // Scroll'u hemen yap
-    smoothScrollTo("apartments-section", 1500);
+    // Küçük bir gecikme ile scroll yap (state güncellemesi için)
+    setTimeout(() => {
+      smoothScrollTo("apartments-section", 1500);
+    }, 50);
     
     // Eğer tarihler seçilmişse, müsait daireleri getir
     if (globalSearchParams.checkIn && globalSearchParams.checkOut) {
@@ -150,13 +153,14 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
       );
       
       // Backend'den veriler geldi ama hala yükleme göster
-      // Tüm kartların fiyatlarının hesaplanması için ekstra süre
       setTimeout(() => {
         setIsSearching(false);
       }, 800);
     } else {
-      // Tarih seçilmemişse hemen kapat
-      setIsSearching(false);
+      // Tarih seçilmemişse de biraz bekle
+      setTimeout(() => {
+        setIsSearching(false);
+      }, 300);
     }
   };
 
