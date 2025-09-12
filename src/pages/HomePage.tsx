@@ -704,102 +704,158 @@ const HomePage: React.FC<HomePageProps> = ({
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/60" />
         </div>
 
-        {/* Animated Navigation Buttons - YENİ GÜNCELLENMİŞ KISIM */}
-        {/* Sol Buton - Owners Page */}
+        {/* Animated Navigation Buttons - DÜZGÜN VERSİYON */}
+        {/* Sol Buton - Owners'a gider, SAĞA BAKAR */}
         <button
           onClick={() => {
+            // Çekme animasyonunu başlat
             setIsTransitioning(true);
-            setSlideProgress(-1);
+            // Önce küçük bir çekme hareketi
+            setSlideProgress(-0.1);
+            
             setTimeout(() => {
-              setCurrentView("owners");
-              setSlideProgress(0);
-              setIsTransitioning(false);
-            }, 700);
+              // Sonra tam çek
+              setSlideProgress(-1);
+              
+              setTimeout(() => {
+                setCurrentView("owners");
+                setSlideProgress(0);
+                setIsTransitioning(false);
+              }, 700);
+            }, 100);
           }}
-          className={`absolute left-6 top-1/2 -translate-y-1/2 z-20 group ${
-            slideProgress < -0.1 ? 'scale-105' : ''
-          }`}
+          className="absolute left-8 top-1/2 -translate-y-1/2 z-20 group"
           aria-label={t.goToPropertyOwners || 'Go to property owners page'}
         >
           <div className="relative">
-            {/* Animated Background Circle */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0a2e23] to-[#1a4a3a] rounded-full 
-                            w-14 h-14 animate-pulse opacity-30 group-hover:opacity-50 transition-opacity" />
+            {/* Glow Effect */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-[#0a2e23]/20 to-transparent 
+                            rounded-full blur-2xl group-hover:from-[#0a2e23]/40 transition-all duration-500" />
             
-            {/* Main Button */}
-            <div className="relative bg-black/30 backdrop-blur-md rounded-full w-14 h-14 
-                            flex items-center justify-center border-2 border-white/20
-                            group-hover:bg-[#0a2e23]/80 group-hover:border-[#0a2e23] 
-                            transition-all duration-300 group-hover:scale-110">
-              <ChevronLeft 
-                size={28} 
-                className="text-white group-hover:text-[#f5e6d3] transition-colors"
-              />
-            </div>
-            
-            {/* Floating Label */}
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
-                            opacity-0 group-hover:opacity-100 transition-all duration-300
-                            pointer-events-none whitespace-nowrap">
-              <div className="bg-[#0a2e23] text-white px-3 py-1.5 rounded-lg text-sm font-medium
-                              shadow-lg">
-                {t.propertyOwners || 'Ev Sahipleri'}
+            {/* Main Button Container */}
+            <div className="relative flex items-center gap-3">
+              {/* Arrow Container */}
+              <div className="relative">
+                {/* Pulse Ring */}
+                <div className="absolute inset-0 bg-[#0a2e23]/20 rounded-full animate-ping" />
+                
+                {/* Button Circle */}
+                <div className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-md 
+                                rounded-full w-16 h-16 flex items-center justify-center
+                                border border-white/10 group-hover:border-[#0a2e23]/50
+                                shadow-2xl group-hover:shadow-[#0a2e23]/20
+                                transition-all duration-500 group-hover:scale-110
+                                group-hover:bg-gradient-to-br group-hover:from-[#0a2e23]/40 group-hover:to-[#0a2e23]/60">
+                  {/* SAĞA BAKAN OK */}
+                  <ChevronRight 
+                    size={32} 
+                    className="text-white/70 group-hover:text-[#f5e6d3] transition-all duration-300
+                              group-hover:translate-x-1"
+                  />
+                </div>
+                
+                {/* Rotating Border */}
+                <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent 
+                                  border-t-[#0a2e23] border-r-[#0a2e23] animate-spin" 
+                      style={{ animationDuration: '3s' }} />
+                </div>
+              </div>
+              
+              {/* Floating Text */}
+              <div className="absolute left-20 opacity-0 group-hover:opacity-100 
+                              transition-all duration-500 group-hover:translate-x-2
+                              pointer-events-none">
+                <div className="bg-gradient-to-r from-[#0a2e23] to-[#1a4a3a] 
+                                text-white px-4 py-2 rounded-xl text-sm font-semibold
+                                shadow-xl whitespace-nowrap backdrop-blur-sm">
+                  <span className="drop-shadow-sm">{t.propertyOwners || 'Ev Sahipleri'}</span>
+                </div>
               </div>
             </div>
             
-            {/* Ripple Effect on Hover */}
-            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
-              <div className="absolute inset-0 bg-white opacity-0 group-hover:animate-ping" />
-            </div>
+            {/* Direction Hint Line */}
+            <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 w-8 h-[2px]
+                            bg-gradient-to-r from-white/20 to-transparent
+                            opacity-0 group-hover:opacity-100 transition-all duration-500
+                            group-hover:w-12" />
           </div>
         </button>
 
-        {/* Sağ Buton - Rentals Page */}
+        {/* Sağ Buton - Rentals'a gider, SOLA BAKAR */}
         <button
           onClick={() => {
+            // Çekme animasyonunu başlat
             setIsTransitioning(true);
-            setSlideProgress(1);
+            // Önce küçük bir çekme hareketi
+            setSlideProgress(0.1);
+            
             setTimeout(() => {
-              setCurrentView("rentals");
-              setSlideProgress(0);
-              setIsTransitioning(false);
-            }, 700);
+              // Sonra tam çek
+              setSlideProgress(1);
+              
+              setTimeout(() => {
+                setCurrentView("rentals");
+                setSlideProgress(0);
+                setIsTransitioning(false);
+              }, 700);
+            }, 100);
           }}
-          className={`absolute right-6 top-1/2 -translate-y-1/2 z-20 group ${
-            slideProgress > 0.1 ? 'scale-105' : ''
-          }`}
+          className="absolute right-8 top-1/2 -translate-y-1/2 z-20 group"
           aria-label={t.goToRentals || 'Go to rentals page'}
         >
           <div className="relative">
-            {/* Animated Background Circle */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#ff9800] to-[#f57c00] rounded-full 
-                            w-14 h-14 animate-pulse opacity-30 group-hover:opacity-50 transition-opacity" />
+            {/* Glow Effect */}
+            <div className="absolute -inset-4 bg-gradient-to-l from-[#ff9800]/20 to-transparent 
+                            rounded-full blur-2xl group-hover:from-[#ff9800]/40 transition-all duration-500" />
             
-            {/* Main Button */}
-            <div className="relative bg-black/30 backdrop-blur-md rounded-full w-14 h-14 
-                            flex items-center justify-center border-2 border-white/20
-                            group-hover:bg-[#ff9800]/80 group-hover:border-[#ff9800] 
-                            transition-all duration-300 group-hover:scale-110">
-              <ChevronRight 
-                size={28} 
-                className="text-white group-hover:text-white transition-colors"
-              />
-            </div>
-            
-            {/* Floating Label */}
-            <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 
-                            opacity-0 group-hover:opacity-100 transition-all duration-300
-                            pointer-events-none whitespace-nowrap">
-              <div className="bg-[#ff9800] text-white px-3 py-1.5 rounded-lg text-sm font-medium
-                              shadow-lg">
-                {t.rentalsAndTours || 'Kiralık Daireler'}
+            {/* Main Button Container */}
+            <div className="relative flex items-center gap-3">
+              {/* Floating Text - SAĞ TARAFTA */}
+              <div className="absolute right-20 opacity-0 group-hover:opacity-100 
+                              transition-all duration-500 group-hover:-translate-x-2
+                              pointer-events-none">
+                <div className="bg-gradient-to-r from-[#ff9800] to-[#f57c00] 
+                                text-white px-4 py-2 rounded-xl text-sm font-semibold
+                                shadow-xl whitespace-nowrap backdrop-blur-sm">
+                  <span className="drop-shadow-sm">{t.rentalsAndTours || 'Kiralık Daireler'}</span>
+                </div>
+              </div>
+              
+              {/* Arrow Container */}
+              <div className="relative">
+                {/* Pulse Ring */}
+                <div className="absolute inset-0 bg-[#ff9800]/20 rounded-full animate-ping" />
+                
+                {/* Button Circle */}
+                <div className="relative bg-gradient-to-bl from-black/40 to-black/60 backdrop-blur-md 
+                                rounded-full w-16 h-16 flex items-center justify-center
+                                border border-white/10 group-hover:border-[#ff9800]/50
+                                shadow-2xl group-hover:shadow-[#ff9800]/20
+                                transition-all duration-500 group-hover:scale-110
+                                group-hover:bg-gradient-to-bl group-hover:from-[#ff9800]/40 group-hover:to-[#ff9800]/60">
+                  {/* SOLA BAKAN OK */}
+                  <ChevronLeft 
+                    size={32} 
+                    className="text-white/70 group-hover:text-white transition-all duration-300
+                              group-hover:-translate-x-1"
+                  />
+                </div>
+                
+                {/* Rotating Border */}
+                <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent 
+                                  border-t-[#ff9800] border-l-[#ff9800] animate-spin" 
+                      style={{ animationDuration: '3s', animationDirection: 'reverse' }} />
+                </div>
               </div>
             </div>
             
-            {/* Ripple Effect on Hover */}
-            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
-              <div className="absolute inset-0 bg-white opacity-0 group-hover:animate-ping" />
-            </div>
+            {/* Direction Hint Line */}
+            <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 w-8 h-[2px]
+                            bg-gradient-to-l from-white/20 to-transparent
+                            opacity-0 group-hover:opacity-100 transition-all duration-500
+                            group-hover:w-12" />
           </div>
         </button>
 
