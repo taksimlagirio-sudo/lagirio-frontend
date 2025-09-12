@@ -714,7 +714,7 @@ const HomePage: React.FC<HomePageProps> = ({
               setIsTransitioning(false);
             }, 700);
           }}
-          className="nav-button absolute left-8 top-[40%] -translate-y-1/2 z-30 group"
+          className="nav-button absolute left-8 top-1/2 -translate-y-1/2 z-30 group"
           onMouseDown={(e) => e.stopPropagation()}
         >
           <div className="relative">
@@ -772,7 +772,7 @@ const HomePage: React.FC<HomePageProps> = ({
               setIsTransitioning(false);
             }, 700);
           }}
-          className="nav-button absolute right-8 top-[40%] -translate-y-1/2 z-30 group"
+          className="nav-button absolute right-8 top-1/2 -translate-y-1/2 z-30 group"
           onMouseDown={(e) => e.stopPropagation()}
         >
           <div className="relative">
@@ -846,94 +846,96 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         {/* Main Content - DÜZGÜN SIRALAMA */}
-        {/* Main Content */}
-        <div className="relative z-20 min-h-screen flex flex-col px-6 py-12">
-          {/* LOGO VE NAVIGATION HINT - SABİT ÜST KONUM */}
-          <div className="absolute top-[15%] left-0 right-0 text-center">
-            {/* LOGO */}
-            <div className="mb-6">
-              <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
-                Home Sweet
-              </p>
-              <h1 className="text-6xl md:text-8xl font-bold text-center">
-                <span className="text-[#ff9800] drop-shadow-2xl">
-                  lagirio<span className="text-[#ff9800]">.</span>
-                </span>
-              </h1>
-            </div>
-
-            {/* Navigation Hint */}
-            <div className="text-center">
-              <p className="text-white/80 text-base flex items-center justify-center gap-3">
-                <ChevronRight size={22} className="text-white/60" />
-                <span className="font-medium">{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
-                <ChevronLeft size={22} className="text-white/60" />
-              </p>
-            </div>
+      {/* Main Content - DÜZGÜN SIRALAMA */}
+      <div className="relative z-20 min-h-screen flex flex-col px-6 py-12">
+        {/* ÜST KISIM - LOGO VE NAVIGATION HINT - ORTAYA KONUMLANDIRILDI */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          {/* LOGO */}
+          <div className="mb-6">
+            <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
+              Home Sweet
+            </p>
+            <h1 className="text-6xl md:text-8xl font-bold text-center">
+              <span className="text-[#ff9800] drop-shadow-2xl">
+                lagirio<span className="text-[#ff9800]">.</span>
+              </span>
+            </h1>
           </div>
 
-          {/* ÖNE ÇIKAN DAİRELER - DAHA AŞAĞIDA */}
-          <div className="absolute bottom-4 left-0 right-0 px-6">
-            {featuredApartments.length > 0 && (
-              <div className="w-full max-w-5xl mx-auto">
-                {/* Başlığı kaldırdık veya küçülttük */}
-                <p className="text-white/60 text-center mb-3 text-[10px] uppercase tracking-wider">
-                  {t.featured || 'Öne Çıkan Daireler'}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {featuredApartments.map((apt, index) => (
-                    <div
-                      key={apt._id || apt.id}
-                      onClick={() => {
-                        setShouldScrollToApartments(true);
-                        setCurrentView("rentals");
-                      }}
-                      className="group cursor-pointer bg-white/5 backdrop-blur-md rounded-lg overflow-hidden
-                              border border-white/10 hover:border-white/20
-                              hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]"
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                      <div className="relative h-32 overflow-hidden">
-                        <img
-                          src={apt.images?.[0]?.url || apt.images?.[0] || '/placeholder.jpg'}
-                          alt={`${apt.translations?.[currentLang]?.title || apt.title} - Taksim Lagirio Residence`}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                      </div>
-                      <div className="p-3">
-                        <h4 className="text-white font-medium text-sm truncate mb-1">
-                          {apt.translations?.[currentLang]?.title || apt.title}
-                        </h4>
-                        <p className="text-white/50 text-xs flex items-center gap-1 mb-1">
-                          <MapPin size={9} />
-                          {apt.district || apt.neighborhood}
-                        </p>
-                        <div className="flex items-center gap-3 text-white/50 text-xs mb-2">
-                          <span className="flex items-center gap-0.5">
-                            <Bed size={9} />
-                            {apt.bedrooms || 2}
-                          </span>
-                          <span className="flex items-center gap-0.5">
-                            <Users size={9} />
-                            {apt.maxGuests || 4}
-                          </span>
-                        </div>
-                        <div className="pt-2 border-t border-white/10">
-                          <p className="text-[#ff9800] font-bold text-sm">
-                            €{apt.price || apt.basePrice || '100'}
-                            <span className="text-white/50 text-[10px] font-normal ml-0.5">/{t.perNight || 'gece'}</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Navigation Hint */}
+          <div className="text-center">
+            <p className="text-white/80 text-base flex items-center justify-center gap-3">
+              <ChevronRight size={22} className="text-white/60" />
+              <span className="font-medium">{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
+              <ChevronLeft size={22} className="text-white/60" />
+            </p>
           </div>
         </div>
+
+        {/* ORTA BOŞLUK - NAV BUTONLARI İÇİN */}
+        <div className="h-32"></div>
+
+        {/* ALT KISIM - ÖNE ÇIKAN DAİRELER - DEĞİŞMEDİ */}
+        <div className="flex-1 flex flex-col items-center justify-start pt-8">
+          {featuredApartments.length > 0 && (
+            <div className="w-full max-w-5xl mx-auto">
+              <h3 className="text-white/80 text-center mb-4 text-sm uppercase tracking-wider font-medium">
+                {t.featured || 'Öne Çıkan Daireler'}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {featuredApartments.map((apt, index) => (
+                  <div
+                    key={apt._id || apt.id}
+                    onClick={() => {
+                      setShouldScrollToApartments(true);
+                      setCurrentView("rentals");
+                    }}
+                    className="group cursor-pointer bg-white/5 backdrop-blur-md rounded-lg overflow-hidden
+                            border border-white/10 hover:border-white/20
+                            hover:bg-white/10 transition-all duration-300 hover:scale-[1.03]"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="relative h-36 overflow-hidden">
+                      <img
+                        src={apt.images?.[0]?.url || apt.images?.[0] || '/placeholder.jpg'}
+                        alt={`${apt.translations?.[currentLang]?.title || apt.title} - Taksim Lagirio Residence`}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    </div>
+                    <div className="p-3.5">
+                      <h4 className="text-white font-medium text-sm truncate mb-1.5">
+                        {apt.translations?.[currentLang]?.title || apt.title}
+                      </h4>
+                      <p className="text-white/50 text-xs flex items-center gap-1 mb-1.5">
+                        <MapPin size={10} />
+                        {apt.district || apt.neighborhood}
+                      </p>
+                      <div className="flex items-center gap-3 text-white/50 text-xs mb-2.5">
+                        <span className="flex items-center gap-0.5">
+                          <Bed size={10} />
+                          {apt.bedrooms || 2}
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <Users size={10} />
+                          {apt.maxGuests || 4}
+                        </span>
+                      </div>
+                      <div className="pt-2.5 border-t border-white/10">
+                        <p className="text-[#ff9800] font-bold text-base">
+                          €{apt.price || apt.basePrice || '100'}
+                          <span className="text-white/50 text-xs font-normal ml-0.5">/{t.perNight || 'gece'}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
       </div>
     </div>
   );
