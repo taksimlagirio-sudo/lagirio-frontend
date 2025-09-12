@@ -343,7 +343,8 @@ const AppContent: React.FC = () => {
       let data;
       
       if (checkIn && checkOut) {
-        // Parametreler varsa yaş grupları ile birlikte gönder
+        console.log('Gönderilen parametreler:', { checkIn, checkOut, adults, children, childrenAgeGroups });
+        
         data = await apartmentAPI.getAvailable({
           checkIn,
           checkOut,
@@ -351,8 +352,10 @@ const AppContent: React.FC = () => {
           children: children || globalSearchParams.children,
           childrenAges: childrenAgeGroups || globalSearchParams.childrenAgeGroups
         });
+        
+        console.log('Backend response:', data);
+        console.log('İlk dairenin fiyat bilgisi:', data[0]?.calculatedTotalPrice);
       } else {
-        // Parametreler yoksa tüm daireleri getir
         data = await apartmentAPI.getAll();
       }
       
