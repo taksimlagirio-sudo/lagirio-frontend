@@ -848,8 +848,11 @@ const HomePage: React.FC<HomePageProps> = ({
         {/* Main Content - DÜZGÜN SIRALAMA */}
         {/* Main Content - DÜZGÜN SIRALAMA */}
         <div className="relative z-20 min-h-screen flex flex-col px-6 py-12">
-          {/* ÜST KISIM - LOGO VE NAVIGATION HINT - ORTAYA KONUMLANDIRILDI */}
-          <div className="flex-1 flex flex-col items-center justify-center">
+          {/* ÜST BOŞLUK */}
+          <div className="flex-[0.7]"></div>
+          
+          {/* ORTA KISIM - LOGO VE NAVIGATION HINT */}
+          <div className="flex flex-col items-center">
             {/* LOGO */}
             <div className="mb-6">
               <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
@@ -863,7 +866,7 @@ const HomePage: React.FC<HomePageProps> = ({
             </div>
 
             {/* Navigation Hint */}
-            <div className="text-center">
+            <div className="text-center mb-20">
               <p className="text-white/80 text-base flex items-center justify-center gap-3">
                 <ChevronRight size={22} className="text-white/60" />
                 <span className="font-medium">{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
@@ -872,11 +875,8 @@ const HomePage: React.FC<HomePageProps> = ({
             </div>
           </div>
 
-          {/* ORTA BOŞLUK - NAV BUTONLARI İÇİN */}
-          <div className="h-32"></div>
-
-          {/* ALT KISIM - ÖNE ÇIKAN DAİRELER - DEĞİŞMEDİ */}
-          <div className="flex-1 flex flex-col items-center justify-start pt-8">
+          {/* ALT KISIM - ÖNE ÇIKAN DAİRELER */}
+          <div className="flex-1 flex flex-col items-center">
             {featuredApartments.length > 0 && (
               <div className="w-full max-w-5xl mx-auto">
                 <h3 className="text-white/80 text-center mb-4 text-sm uppercase tracking-wider font-medium">
