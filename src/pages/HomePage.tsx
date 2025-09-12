@@ -543,9 +543,9 @@ const HomePage: React.FC<HomePageProps> = ({
           {/* Navigation Hint - DAHA KÜÇÜK */}
           <div className="mb-6 text-center">
             <p className="text-white/60 text-sm flex items-center justify-center gap-2">
-              <ChevronRight size={16} className="text-white/40" />
+              <ChevronRight size={20} className="text-white/40" />
               <span>{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
-              <ChevronLeft size={16} className="text-white/40" />
+              <ChevronLeft size={20} className="text-white/40" />
             </p>
           </div>
 
