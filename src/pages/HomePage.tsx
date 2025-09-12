@@ -847,9 +847,9 @@ const HomePage: React.FC<HomePageProps> = ({
 
         {/* Main Content */}
         <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6 py-16">
-          {/* LOGO - DAHA BÜYÜK VE DENGELİ */}
+          {/* LOGO - HOME SWEET KALINLIĞI AZALTILDI */}
           <div className="mb-8">
-            <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-bold mb-3">
+            <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
               Home Sweet
             </p>
             <h1 className="text-6xl md:text-8xl font-bold text-center">
@@ -868,13 +868,13 @@ const HomePage: React.FC<HomePageProps> = ({
             </p>
           </div>
 
-          {/* Featured Apartments */}
+          {/* Featured Apartments - KARTLAR KÜÇÜLTÜLDÜ, BAŞLIK BÜYÜTÜLDÜ */}
           {featuredApartments.length > 0 && (
             <div className="w-full max-w-6xl mx-auto">
-              <h3 className="text-white/70 text-center mb-4 text-xs uppercase tracking-wider">
+              <h3 className="text-white/80 text-center mb-4 text-sm uppercase tracking-wider font-medium">
                 {t.featured || 'Öne Çıkan Daireler'}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {featuredApartments.map((apt, index) => (
                   <div
                     key={apt._id || apt.id}
@@ -882,12 +882,12 @@ const HomePage: React.FC<HomePageProps> = ({
                       setShouldScrollToApartments(true);
                       setCurrentView("rentals");
                     }}
-                    className="group cursor-pointer bg-white/5 backdrop-blur-md rounded-xl overflow-hidden
+                    className="group cursor-pointer bg-white/5 backdrop-blur-md rounded-lg overflow-hidden
                             border border-white/10 hover:border-white/20
                             hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="relative h-36 overflow-hidden">
+                    <div className="relative h-28 overflow-hidden">
                       <img
                         src={apt.images?.[0]?.url || apt.images?.[0] || '/placeholder.jpg'}
                         alt={`${apt.translations?.[currentLang]?.title || apt.title} - Taksim Lagirio Residence`}
@@ -896,30 +896,30 @@ const HomePage: React.FC<HomePageProps> = ({
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                     </div>
-                    <div className="p-4">
-                      <h4 className="text-white font-medium text-sm truncate mb-2">
+                    <div className="p-3">
+                      <h4 className="text-white font-medium text-xs truncate mb-1.5">
                         {apt.translations?.[currentLang]?.title || apt.title}
                       </h4>
                       <div className="flex items-center justify-between">
-                        <p className="text-white/50 text-xs flex items-center gap-1">
-                          <MapPin size={10} />
+                        <p className="text-white/50 text-[10px] flex items-center gap-1">
+                          <MapPin size={9} />
                           {apt.district || apt.neighborhood}
                         </p>
-                        <div className="flex items-center gap-3 text-white/50 text-xs">
-                          <span className="flex items-center gap-1">
-                            <Bed size={10} />
+                        <div className="flex items-center gap-2 text-white/50 text-[10px]">
+                          <span className="flex items-center gap-0.5">
+                            <Bed size={9} />
                             {apt.bedrooms || 2}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Users size={10} />
+                          <span className="flex items-center gap-0.5">
+                            <Users size={9} />
                             {apt.maxGuests || 4}
                           </span>
                         </div>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-white/10">
-                        <p className="text-[#ff9800] font-bold text-base">
+                      <div className="mt-2 pt-2 border-t border-white/10">
+                        <p className="text-[#ff9800] font-bold text-sm">
                           €{apt.price || apt.basePrice || '100'}
-                          <span className="text-white/50 text-xs font-normal ml-1">/{t.perNight || 'gece'}</span>
+                          <span className="text-white/50 text-[10px] font-normal ml-1">/{t.perNight || 'gece'}</span>
                         </p>
                       </div>
                     </div>
