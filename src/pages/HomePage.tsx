@@ -846,9 +846,10 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
-          {/* LOGO VE NAVIGATION HINT - YUKARDA */}
-          <div className="absolute top-20">
+        {/* Main Content - DÜZGÜN SIRALAMA */}
+        <div className="relative z-20 min-h-screen flex flex-col px-6 py-12">
+          {/* ÜST KISIM - LOGO VE NAVIGATION HINT */}
+          <div className="flex-1 flex flex-col items-center justify-end pb-8">
             {/* LOGO */}
             <div className="mb-6">
               <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
@@ -871,8 +872,11 @@ const HomePage: React.FC<HomePageProps> = ({
             </div>
           </div>
 
-          {/* ÖNE ÇIKAN DAİRELER - AŞAĞIDA */}
-          <div className="absolute bottom-20">
+          {/* ORTA BOŞLUK - NAV BUTONLARI İÇİN */}
+          <div className="h-32"></div>
+
+          {/* ALT KISIM - ÖNE ÇIKAN DAİRELER */}
+          <div className="flex-1 flex flex-col items-center justify-start pt-8">
             {featuredApartments.length > 0 && (
               <div className="w-full max-w-4xl mx-auto">
                 <h3 className="text-white/80 text-center mb-4 text-sm uppercase tracking-wider font-medium">
@@ -891,7 +895,7 @@ const HomePage: React.FC<HomePageProps> = ({
                               hover:bg-white/10 transition-all duration-300 hover:scale-[1.03]"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="relative h-44 overflow-hidden">
+                      <div className="relative h-32 overflow-hidden">
                         <img
                           src={apt.images?.[0]?.url || apt.images?.[0] || '/placeholder.jpg'}
                           alt={`${apt.translations?.[currentLang]?.title || apt.title} - Taksim Lagirio Residence`}
@@ -900,30 +904,28 @@ const HomePage: React.FC<HomePageProps> = ({
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                       </div>
-                      <div className="p-4">
-                        <h4 className="text-white font-medium text-sm truncate mb-2">
+                      <div className="p-3">
+                        <h4 className="text-white font-medium text-xs truncate mb-1">
                           {apt.translations?.[currentLang]?.title || apt.title}
                         </h4>
-                        <p className="text-white/50 text-xs flex items-center gap-1 mb-2">
-                          <MapPin size={10} />
+                        <p className="text-white/50 text-[10px] flex items-center gap-1 mb-1">
+                          <MapPin size={9} />
                           {apt.district || apt.neighborhood}
                         </p>
-                        <div className="flex items-center gap-3 text-white/50 text-xs mb-3">
-                          <span className="flex items-center gap-1">
-                            <Bed size={10} />
+                        <div className="flex items-center gap-2 text-white/50 text-[10px] mb-2">
+                          <span className="flex items-center gap-0.5">
+                            <Bed size={9} />
                             {apt.bedrooms || 2}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Users size={10} />
+                          <span className="flex items-center gap-0.5">
+                            <Users size={9} />
                             {apt.maxGuests || 4}
                           </span>
                         </div>
-                        <div className="pt-3 border-t border-white/10">
-                          <p className="text-[#ff9800] font-bold text-base">
+                        <div className="pt-2 border-t border-white/10">
+                          <p className="text-[#ff9800] font-bold text-sm">
                             €{apt.price || apt.basePrice || '100'}
-                            <span className="text-white/50 text-xs font-normal ml-1">
-                              /{t.perNight || 'gece'}
-                            </span>
+                            <span className="text-white/50 text-[10px] font-normal ml-0.5">/{t.perNight || 'gece'}</span>
                           </p>
                         </div>
                       </div>
