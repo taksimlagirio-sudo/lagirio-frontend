@@ -620,7 +620,7 @@ const HomePage: React.FC<HomePageProps> = ({
       </div>
     );
   }
-  // DESKTOP VERSION (aynı kalacak)
+  // DESKTOP VERSION
   return (
     <div
       ref={containerRef}
@@ -704,8 +704,8 @@ const HomePage: React.FC<HomePageProps> = ({
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/60" />
         </div>
 
-        {/* Animated Navigation Buttons - DÜZELTME */}
-        {/* Sol Buton - Owners'a gider, SAĞA BAKAR */}
+        {/* Animated Side Navigation Buttons */}
+        {/* Sol Buton - Owners'a gider */}
         <button
           onClick={() => {
             if (isTransitioning) return;
@@ -717,15 +717,12 @@ const HomePage: React.FC<HomePageProps> = ({
               setIsTransitioning(false);
             }, 700);
           }}
-          className="absolute left-8 top-1/2 -translate-y-1/2 z-20 group"
-          aria-label={t.goToPropertyOwners || 'Go to property owners page'}
+          className="absolute left-8 top-1/2 -translate-y-1/2 z-20 group cursor-pointer"
         >
           <div className="relative">
-            {/* Subtle glow */}
             <div className="absolute -inset-2 bg-[#0a2e23]/10 rounded-full blur-xl 
                             group-hover:bg-[#0a2e23]/20 transition-all duration-300" />
             
-            {/* Button */}
             <div className="relative bg-black/20 backdrop-blur-sm rounded-full w-14 h-14 
                             flex items-center justify-center
                             border border-white/20 group-hover:border-[#0a2e23]/60
@@ -737,7 +734,6 @@ const HomePage: React.FC<HomePageProps> = ({
               />
             </div>
             
-            {/* Label */}
             <div className="absolute left-16 top-1/2 -translate-y-1/2 
                             opacity-0 group-hover:opacity-100 transition-all duration-300
                             pointer-events-none">
@@ -749,7 +745,7 @@ const HomePage: React.FC<HomePageProps> = ({
           </div>
         </button>
 
-        {/* Sağ Buton - Rentals'a gider, SOLA BAKAR */}
+        {/* Sağ Buton - Rentals'a gider */}
         <button
           onClick={() => {
             if (isTransitioning) return;
@@ -761,15 +757,12 @@ const HomePage: React.FC<HomePageProps> = ({
               setIsTransitioning(false);
             }, 700);
           }}
-          className="absolute right-8 top-1/2 -translate-y-1/2 z-20 group"
-          aria-label={t.goToRentals || 'Go to rentals page'}
+          className="absolute right-8 top-1/2 -translate-y-1/2 z-20 group cursor-pointer"
         >
           <div className="relative">
-            {/* Subtle glow */}
             <div className="absolute -inset-2 bg-[#ff9800]/10 rounded-full blur-xl 
                             group-hover:bg-[#ff9800]/20 transition-all duration-300" />
             
-            {/* Button */}
             <div className="relative bg-black/20 backdrop-blur-sm rounded-full w-14 h-14 
                             flex items-center justify-center
                             border border-white/20 group-hover:border-[#ff9800]/60
@@ -781,7 +774,6 @@ const HomePage: React.FC<HomePageProps> = ({
               />
             </div>
             
-            {/* Label */}
             <div className="absolute right-16 top-1/2 -translate-y-1/2 
                             opacity-0 group-hover:opacity-100 transition-all duration-300
                             pointer-events-none">
