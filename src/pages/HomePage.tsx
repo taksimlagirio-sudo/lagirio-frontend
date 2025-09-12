@@ -846,88 +846,93 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6 py-16">
-          {/* LOGO */}
-          <div className="mb-10">
-            <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
-              Home Sweet
-            </p>
-            <h1 className="text-6xl md:text-8xl font-bold text-center">
-              <span className="text-[#ff9800] drop-shadow-2xl">
-                lagirio<span className="text-[#ff9800]">.</span>
-              </span>
-            </h1>
-          </div>
-
-          {/* Navigation Hint - BOYUTLAR ARTTIRILDI */}
-          <div className="mb-12 text-center">
-            <p className="text-white/80 text-base flex items-center justify-center gap-3">
-              <ChevronRight size={22} className="text-white/60" />
-              <span className="font-medium">{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
-              <ChevronLeft size={22} className="text-white/60" />
-            </p>
-          </div>
-
-          {/* Featured Apartments - DAHA AŞAĞIDA VE ARTIRILMIŞ BOŞLUK */}
-          {featuredApartments.length > 0 && (
-            <div className="w-full max-w-4xl mx-auto mt-8">
-              <h3 className="text-white/80 text-center mb-5 text-sm uppercase tracking-wider font-medium">
-                {t.featured || 'Öne Çıkan Daireler'}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {featuredApartments.map((apt, index) => (
-                  <div
-                    key={apt._id || apt.id}
-                    onClick={() => {
-                      setShouldScrollToApartments(true);
-                      setCurrentView("rentals");
-                    }}
-                    className="group cursor-pointer bg-white/5 backdrop-blur-md rounded-lg overflow-hidden
-                            border border-white/10 hover:border-white/20
-                            hover:bg-white/10 transition-all duration-300 hover:scale-[1.03]"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="relative h-44 overflow-hidden">
-                      <img
-                        src={apt.images?.[0]?.url || apt.images?.[0] || '/placeholder.jpg'}
-                        alt={`${apt.translations?.[currentLang]?.title || apt.title} - Taksim Lagirio Residence`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                    </div>
-                    <div className="p-4">
-                      <h4 className="text-white font-medium text-sm truncate mb-2">
-                        {apt.translations?.[currentLang]?.title || apt.title}
-                      </h4>
-                      <p className="text-white/50 text-xs flex items-center gap-1 mb-2">
-                        <MapPin size={10} />
-                        {apt.district || apt.neighborhood}
-                      </p>
-                      <div className="flex items-center gap-3 text-white/50 text-xs mb-3">
-                        <span className="flex items-center gap-1">
-                          <Bed size={10} />
-                          {apt.bedrooms || 2}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users size={10} />
-                          {apt.maxGuests || 4}
-                        </span>
-                      </div>
-                      <div className="pt-3 border-t border-white/10">
-                        <p className="text-[#ff9800] font-bold text-base">
-                          €{apt.price || apt.basePrice || '100'}
-                          <span className="text-white/50 text-xs font-normal ml-1">
-                            /{t.perNight || 'gece'}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-6">
+          {/* LOGO VE NAVIGATION HINT - YUKARDA */}
+          <div className="absolute top-20">
+            {/* LOGO */}
+            <div className="mb-6">
+              <p className="text-[#f5e6d3] text-3xl md:text-4xl text-center font-semibold mb-3">
+                Home Sweet
+              </p>
+              <h1 className="text-6xl md:text-8xl font-bold text-center">
+                <span className="text-[#ff9800] drop-shadow-2xl">
+                  lagirio<span className="text-[#ff9800]">.</span>
+                </span>
+              </h1>
             </div>
-          )}
+
+            {/* Navigation Hint */}
+            <div className="text-center">
+              <p className="text-white/80 text-base flex items-center justify-center gap-3">
+                <ChevronRight size={22} className="text-white/60" />
+                <span className="font-medium">{t.pullLeftAndRight || 'Sola ve sağa çekerek keşfet'}</span>
+                <ChevronLeft size={22} className="text-white/60" />
+              </p>
+            </div>
+          </div>
+
+          {/* ÖNE ÇIKAN DAİRELER - AŞAĞIDA */}
+          <div className="absolute bottom-20">
+            {featuredApartments.length > 0 && (
+              <div className="w-full max-w-4xl mx-auto">
+                <h3 className="text-white/80 text-center mb-4 text-sm uppercase tracking-wider font-medium">
+                  {t.featured || 'Öne Çıkan Daireler'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {featuredApartments.map((apt, index) => (
+                    <div
+                      key={apt._id || apt.id}
+                      onClick={() => {
+                        setShouldScrollToApartments(true);
+                        setCurrentView("rentals");
+                      }}
+                      className="group cursor-pointer bg-white/5 backdrop-blur-md rounded-lg overflow-hidden
+                              border border-white/10 hover:border-white/20
+                              hover:bg-white/10 transition-all duration-300 hover:scale-[1.03]"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <div className="relative h-44 overflow-hidden">
+                        <img
+                          src={apt.images?.[0]?.url || apt.images?.[0] || '/placeholder.jpg'}
+                          alt={`${apt.translations?.[currentLang]?.title || apt.title} - Taksim Lagirio Residence`}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      </div>
+                      <div className="p-4">
+                        <h4 className="text-white font-medium text-sm truncate mb-2">
+                          {apt.translations?.[currentLang]?.title || apt.title}
+                        </h4>
+                        <p className="text-white/50 text-xs flex items-center gap-1 mb-2">
+                          <MapPin size={10} />
+                          {apt.district || apt.neighborhood}
+                        </p>
+                        <div className="flex items-center gap-3 text-white/50 text-xs mb-3">
+                          <span className="flex items-center gap-1">
+                            <Bed size={10} />
+                            {apt.bedrooms || 2}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users size={10} />
+                            {apt.maxGuests || 4}
+                          </span>
+                        </div>
+                        <div className="pt-3 border-t border-white/10">
+                          <p className="text-[#ff9800] font-bold text-base">
+                            €{apt.price || apt.basePrice || '100'}
+                            <span className="text-white/50 text-xs font-normal ml-1">
+                              /{t.perNight || 'gece'}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
