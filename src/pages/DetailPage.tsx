@@ -297,6 +297,11 @@ const DetailPage: React.FC<DetailPageProps> = ({
     }
   };
 
+  const navigateWithLang = (path: string) => {
+    const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
+    navigate(`${langPrefix}${path}`);
+  };
+
   const handleShare = (platform: string) => {
     const url = window.location.href;
     const title = selectedItem.translations?.[currentLang]?.title || 
@@ -580,7 +585,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
             
             <button
               onClick={() => {
-                navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
+                navigateWithLang(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
                 setTimeout(() => {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }, 100);
@@ -1094,7 +1099,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                 <div className="flex flex-col items-center">
                   <button
                     onClick={() => {
-                      navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
+                      navigateWithLang(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
                       // Navigation tamamlandıktan sonra scroll
                       setTimeout(() => {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1206,7 +1211,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
           
           <button
             onClick={() => {
-              navigate(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
+              navigateWithLang(`/reservation/${selectedItemType}/${selectedItem._id || selectedItem.id}`);
               setTimeout(() => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }, 100);

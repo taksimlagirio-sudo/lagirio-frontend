@@ -25,7 +25,7 @@ export const translations = {
 
     
     // Navigasyon
-    location: "Konum girin",
+    location: "Konum",
     checkIn: "Giriş tarihi",
     checkOut: "Çıkış tarihi",
     guests: "Misafir",
@@ -816,7 +816,7 @@ export const translations = {
     settings: "Settings",
     
     // Navigation
-    location: "Enter location",
+    location: "Location",
     checkIn: "Check-in date",
     checkOut: "Check-out date",
     guests: "Guests",
@@ -1626,7 +1626,7 @@ export const translations = {
     settings: "الإعدادات",
     
     // التنقل
-    location: "أدخل الموقع",
+    location: "الموقع",
     checkIn: "تاريخ الوصول",
     checkOut: "تاريخ المغادرة",
     guests: "الضيوف",
@@ -2426,7 +2426,7 @@ export const translations = {
     settings: "Настройки",
     
     // Навигация
-    location: "Введите местоположение",
+    location: "Местоположение",
     checkIn: "Дата заезда",
     checkOut: "Дата выезда",
     guests: "Гости",

@@ -5,6 +5,14 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
 // Token'ı localStorage'dan al
 const getToken = (): string | null => localStorage.getItem('token');
 
+// URL'den dili al: /en/apartments → 'en', / → 'tr' (varsayılan)
+const getCurrentLanguage = () => {
+  const pathSegments = window.location.pathname.split('/');
+  const possibleLang = pathSegments[1];
+  const supportedLangs = ['tr', 'en', 'ar', 'ru', 'de', 'fr'];
+  return supportedLangs.includes(possibleLang) ? possibleLang : 'tr';
+};
+
 // API çağrısı için yardımcı fonksiyon
 const apiCall = async <T = any>(
   endpoint: string, 
@@ -16,6 +24,7 @@ const apiCall = async <T = any>(
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      'Accept-Language': getCurrentLanguage(), // YENİ
       ...options.headers,
       ...(token && { 'Authorization': `Bearer ${token}` })
     }
