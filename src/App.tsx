@@ -5,14 +5,11 @@ import { authAPI, apartmentAPI, siteImageAPI, tourAPI } from './utils/api';
 import ProtectedRoute from './components/ProtectedRoute';
 import { validatePhoneNumber } from './utils/phoneValidation';
 import { countryPhoneCodes } from './utils/countryPhoneCodes';
-import Footer from './components/Footer'; // Footer import - KALACAK
+import Footer from './components/Footer';
 import ForgotPasswordModal from './components/modals/ForgotPasswordModal';
 import WhatsAppRedirectModal from './components/modals/WhatsAppRedirectModal';
 import { HelmetProvider } from 'react-helmet-async';
-import SEOHead from './components/SEOHead'; // YENİ - SEO Component
-
-
-
+import SEOHead from './components/SEOHead';
 
 // Lazy loaded pages
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -24,10 +21,10 @@ const UserProfile = lazy(() => import('./pages/UserProfile'));
 const UserReservations = lazy(() => import('./pages/UserReservations'));
 const UserFavorites = lazy(() => import('./pages/UserFavorites'));
 const ReservationPage = lazy(() => import('./pages/ReservationPage'));
-const LegalPage = lazy(() => import('./pages/LegalPage')); // Sadece lazy load - TEK IMPORT
+const LegalPage = lazy(() => import('./pages/LegalPage'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 
-// Modals (bunlar lazy load edilmez)
+// Modals
 import LoginModal from './components/modals/LoginModal';
 import RegisterModal from './components/modals/RegisterModal';
 import DetailModal from './components/modals/DetailModal';
@@ -46,7 +43,7 @@ interface ToastMessage {
   type: 'success' | 'error' | 'warning' | 'info';
 }
 
-// Loading component - Mobile optimized
+// Loading component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
     <div className="text-center">
@@ -77,7 +74,6 @@ const useIsMobile = () => {
 function App() {
   // Mobile viewport meta tags
   useEffect(() => {
-    // Viewport meta tag
     let viewportMeta = document.querySelector('meta[name="viewport"]');
     if (!viewportMeta) {
       viewportMeta = document.createElement('meta');
@@ -86,7 +82,6 @@ function App() {
     }
     viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover');
 
-    // Theme color meta tag
     let themeColorMeta = document.querySelector('meta[name="theme-color"]');
     if (!themeColorMeta) {
       themeColorMeta = document.createElement('meta');
@@ -95,7 +90,6 @@ function App() {
     }
     themeColorMeta.setAttribute('content', '#ff9800');
 
-    // Apple mobile web app capable
     let appleMeta = document.querySelector('meta[name="apple-mobile-web-app-capable"]');
     if (!appleMeta) {
       appleMeta = document.createElement('meta');
@@ -104,7 +98,6 @@ function App() {
       document.head.appendChild(appleMeta);
     }
 
-    // Apple status bar style
     let statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
     if (!statusBarMeta) {
       statusBarMeta = document.createElement('meta');
@@ -113,10 +106,8 @@ function App() {
       document.head.appendChild(statusBarMeta);
     }
 
-    // Prevent iOS bounce effect
     document.body.style.overscrollBehavior = 'none';
 
-    // iOS input zoom fix - minimum font size
     const style = document.createElement('style');
     style.innerHTML = `
       @supports (-webkit-touch-callout: none) {
@@ -134,7 +125,6 @@ function App() {
     document.head.appendChild(style);
 
     return () => {
-      // Cleanup
       document.body.style.overscrollBehavior = '';
     };
   }, []);
@@ -150,14 +140,12 @@ function App() {
   );
 }
 
-
-
 // App içeriği - tüm state ve logic burada
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  // YENİ - URL'den dili al
+  // URL'den dili al
   const getLanguageFromURL = () => {
     const path = window.location.pathname;
     if (path.startsWith('/en')) return 'en';
@@ -166,12 +154,10 @@ const AppContent: React.FC = () => {
     return 'tr';
   };
   
-  // Language - localStorage'dan al (mobile için önemli)
   const [currentLang, setCurrentLang] = useState(() => {
     const urlLang = getLanguageFromURL();
     const storedLang = localStorage.getItem('preferredLanguage');
     
-    // URL'deki dil öncelikli
     if (urlLang !== 'tr') {
       return urlLang;
     }
@@ -179,10 +165,8 @@ const AppContent: React.FC = () => {
     return storedLang || 'tr';
   });
 
-  // YENİ - Dil değiştirme fonksiyonu (URL'li)
   const changeLanguage = (newLang: string) => {
     const currentPath = window.location.pathname;
-    // Mevcut dil prefix'ini temizle
     const pathWithoutLang = currentPath.replace(/^\/(en|ar|ru)/, '');
     
     if (newLang === 'tr') {
@@ -195,12 +179,10 @@ const AppContent: React.FC = () => {
     localStorage.setItem('preferredLanguage', newLang);
   };
 
-  // Language değiştiğinde localStorage'a kaydet
   useEffect(() => {
     localStorage.setItem('preferredLanguage', currentLang);
   }, [currentLang]);
 
-  // WhatsApp Modal States
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [whatsAppData,] = useState<{
     url: string;
@@ -210,30 +192,21 @@ const AppContent: React.FC = () => {
     reservationNumber: ''
   });
 
-  // Data States
   const [apartments, setApartments] = useState<any[]>([]);
   const [tours, setTours] = useState<any[]>([]);
   const [siteImages, setSiteImages] = useState(defaultSiteImages);
-
   const [isGlobalSearching, setIsGlobalSearching] = useState(false);
-
-  // Modal States
   const [activeModal, setActiveModal] = useState<'login' | 'register' | 'forgotPassword' | 'detail' | 'reservation' | null>(null);
-
-  // Selected Items
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [selectedItemType, setSelectedItemType] = useState<'apartments' | 'tours' | null>(null);
   const [modalItem, setModalItem] = useState<any>(null);
   const [modalItemType, setModalItemType] = useState<'apartments' | 'tours' | null>(null);
-
-  // EMAIL VERIFICATION STATES - YENİ
   const [verificationStep, setVerificationStep] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [tempToken, setTempToken] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
 
-  // Form Data - GÜNCELLEME: Tutarlı isimlendirme
   const [formData, setFormData] = useState({
     login: {
       email: '',
@@ -263,32 +236,28 @@ const AppContent: React.FC = () => {
       },
       message: '',
       country: 'TR',
-      isRefundable: false // YENİ - İptal edilebilir rezervasyon seçeneği
+      isRefundable: false
     }
   });
 
-  // Global search state - GÜNCELLEME: Tutarlı isimlendirme
   const [globalSearchParams, setGlobalSearchParams] = useState({
     checkIn: '',
     checkOut: '',
     adults: 1,
     children: 0,
-    childrenAgeGroups: { // Tutarlı isimlendirme
+    childrenAgeGroups: {
       above7: 0,
-      between2And7: 0, // under7 yerine
-      under2: 0 // infant yerine
+      between2And7: 0,
+      under2: 0
     }
   });
 
-  // Toast Messages
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Modal açıkken scroll'u engelle
   useEffect(() => {
     const hasModal = activeModal !== null;
     if (hasModal) {
       document.body.style.overflow = 'hidden';
-      // iOS için ek önlem
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
     } else {
@@ -304,16 +273,13 @@ const AppContent: React.FC = () => {
     };
   }, [activeModal]);
 
-  // Current translations
   const t = (translations as any)[currentLang];
 
-  // GÜNCELLEME: Navigation helper fonksiyonu - DİL PREFIX'İNİ KORUR
   const navigateWithLang = (path: string) => {
     const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
     navigate(`${langPrefix}${path}`);
   };
 
-  // GÜNCELLEME: Navigation function - DİL PREFIX'İNİ KORUR
   const setCurrentView = (view: string) => {
     switch(view) {
       case 'home':
@@ -327,13 +293,17 @@ const AppContent: React.FC = () => {
         break;
       case 'detail':
         if (selectedItem && selectedItemType) {
-          navigateWithLang(`/detail/${selectedItemType}/${selectedItem.id}`);
+          // YENİ - Slug kontrolü ekle
+          if (selectedItemType === 'apartments' && selectedItem.slugs?.[currentLang]) {
+            navigateWithLang(`/apartment/${selectedItem.slugs[currentLang]}`);
+          } else {
+            navigateWithLang(`/detail/${selectedItemType}/${selectedItem.id}`);
+          }
         }
         break;
     }
   };
 
-  // Fetch functions - GÜNCELLEME: childrenAges tipini düzelt
   const fetchApartments = async (
     checkIn?: string, 
     checkOut?: string,
@@ -342,10 +312,9 @@ const AppContent: React.FC = () => {
     childrenAgeGroups?: { above7: number; between2And7: number; under2: number }
   ) => {
     try {
-      // ARAMA YAPILIYORSA ÖNCELİKLE APARTMENTS'I BOŞALT VE SEARCHING'İ TRUE YAP
       if (checkIn && checkOut) {
         setApartments([]);
-        setIsGlobalSearching(true); // YENİ
+        setIsGlobalSearching(true);
       }
       
       let data;
@@ -372,18 +341,16 @@ const AppContent: React.FC = () => {
         reservations: apt.reservations || []
       }));
       
-      // Data geldiğinde apartments'ı doldur
       setApartments(apartmentsWithReservations);
       
-      // Biraz bekleyip searching'i kapat
       setTimeout(() => {
-        setIsGlobalSearching(false); // YENİ
+        setIsGlobalSearching(false);
       }, 300);
       
     } catch (error) {
       console.error('Daireler yüklenemedi:', error);
       addToast('Daireler yüklenemedi', 'error');
-      setIsGlobalSearching(false); // YENİ - Hata durumunda da kapat
+      setIsGlobalSearching(false);
     }
   };
 
@@ -422,7 +389,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Toast functions
   const addToast = (message: string, type: ToastMessage['type'] = 'success') => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -432,7 +398,6 @@ const AppContent: React.FC = () => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  // Modal handlers
   const openModal = (modalType: 'login' | 'register' | 'forgotPassword' | 'detail' | 'reservation') => {
     setActiveModal(modalType);
   };
@@ -441,8 +406,13 @@ const AppContent: React.FC = () => {
     setActiveModal(null);
   };
 
-  // GÜNCELLEME: handleOpenModal'da childrenAgeGroups'u da ekle
   const handleOpenModal = (item: any, type: string) => {
+    // YENİ - Apartments için slug kontrolü
+    if (type === 'apartments' && item.slugs?.[currentLang]) {
+      const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
+      navigate(`${langPrefix}/apartment/${item.slugs[currentLang]}`);
+      return;
+    }
     setSelectedItem(item);
     setSelectedItemType(type as 'apartments' | 'tours');
     setModalItem(item);
@@ -457,7 +427,7 @@ const AppContent: React.FC = () => {
           checkOut: globalSearchParams.checkOut,
           adults: globalSearchParams.adults,
           children: globalSearchParams.children,
-          childrenAgeGroups: globalSearchParams.childrenAgeGroups // YENİ
+          childrenAgeGroups: globalSearchParams.childrenAgeGroups
         }
       }));
     }
@@ -471,7 +441,6 @@ const AppContent: React.FC = () => {
     setModalItemType(null);
   };
 
-  // GÜNCELLEME: handleDetailNavigation - DİL PREFIX'İNİ KORUR
   const handleDetailNavigation = (scrollToReservation = false) => {
     handleCloseModal();
     setSelectedItem(modalItem);
@@ -480,64 +449,60 @@ const AppContent: React.FC = () => {
     const itemId = modalItem.id || modalItem._id || modalItem.apartmentNumber || modalItem.tourNumber;
     
     if (scrollToReservation) {
-      // Direkt rezervasyon sayfasına git
       navigateWithLang(`/reservation/${modalItemType}/${itemId}`);
     } else {
-      navigateWithLang(`/detail/${modalItemType}/${itemId}`);
+      // YENİ - Slug kontrolü
+      if (modalItemType === 'apartments' && modalItem.slugs?.[currentLang]) {
+        navigateWithLang(`/apartment/${modalItem.slugs[currentLang]}`);
+      } else {
+        navigateWithLang(`/detail/${modalItemType}/${itemId}`);
+      }
     }
   };
 
-  // Auth handlers
-const handleLogin = async () => {
-  try {
-    const response = await authAPI.login({
-      email: formData.login.email,
-      password: formData.login.password
-    });
-    
-    // Token'ı kaydet
-    localStorage.setItem('token', response.token);
-    localStorage.setItem('user', JSON.stringify(response.user));
-    
-    // Başarı mesajı
-    addToast(t.loginSuccess + ' ' + response.user.name || 'Hoş geldiniz ' + response.user.name, 'success');
-    closeModal();
-    
-    // Form temizle
-    setFormData(prev => ({
-      ...prev,
-      login: { email: '', password: '', rememberMe: false }
-    }));
-    
-    // Sayfayı yenile
-    window.location.reload();
-    
-  } catch (error: any) {
-    // Rate limit kontrolü
-    if (error.response?.status === 429) {
-      const retryAfter = error.response.headers['retry-after'];
-      const minutes = retryAfter ? Math.ceil(retryAfter / 60) : 15;
+  const handleLogin = async () => {
+    try {
+      const response = await authAPI.login({
+        email: formData.login.email,
+        password: formData.login.password
+      });
       
-      addToast(
-        t.tooManyAttempts || `Çok fazla giriş denemesi yaptınız. Lütfen ${minutes} dakika sonra tekrar deneyin.`,
-        'error'
-      );
-    } else {
-      // Diğer hatalar
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          t.loginFailed || 
-                          'Giriş başarısız';
-      addToast(errorMessage, 'error');
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      addToast(t.loginSuccess + ' ' + response.user.name || 'Hoş geldiniz ' + response.user.name, 'success');
+      closeModal();
+      
+      setFormData(prev => ({
+        ...prev,
+        login: { email: '', password: '', rememberMe: false }
+      }));
+      
+      window.location.reload();
+      
+    } catch (error: any) {
+      if (error.response?.status === 429) {
+        const retryAfter = error.response.headers['retry-after'];
+        const minutes = retryAfter ? Math.ceil(retryAfter / 60) : 15;
+        
+        addToast(
+          t.tooManyAttempts || `Çok fazla giriş denemesi yaptınız. Lütfen ${minutes} dakika sonra tekrar deneyin.`,
+          'error'
+        );
+      } else {
+        const errorMessage = error.response?.data?.message || 
+                            error.message || 
+                            t.loginFailed || 
+                            'Giriş başarısız';
+        addToast(errorMessage, 'error');
+      }
     }
-  }
-};
+  };
 
   const handleRegister = async () => {
     const t = translations[currentLang as keyof typeof translations];
     
     try {
-      // Frontend validasyonları
       const errors: Record<string, string> = {};
       
       if (!formData.register.name || formData.register.name.trim().length < 2) {
@@ -582,9 +547,6 @@ const handleLogin = async () => {
         errors.terms = t.acceptTermsRequired || 'You must accept the terms';
       }
       
-   
-      
-      // API çağrısı
       const response = await authAPI.register({
         name: formData.register.name.trim(),
         email: formData.register.email.toLowerCase().trim(),
@@ -593,13 +555,11 @@ const handleLogin = async () => {
         preferredLanguage: currentLang
       });
       
-      // YENİ - Email verification gerekiyorsa
       if (response.requiresVerification && response.tempToken) {
         setTempToken(response.tempToken);
         setVerificationStep(true);
         addToast(t.verificationCodeSent || 'Doğrulama kodu email adresinize gönderildi', 'success');
       } else {
-        // Eski akış (eğer verification kapalıysa)
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         
@@ -643,7 +603,6 @@ const handleLogin = async () => {
     }
   };
 
-  // YENİ - Email verification handler
   const handleVerifyEmail = async () => {
     const t = translations[currentLang as keyof typeof translations];
     
@@ -660,19 +619,16 @@ const handleLogin = async () => {
         tempToken: tempToken
       });
       
-      // Başarılı verification
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       addToast(t.emailVerificationSuccess || 'Email adresiniz başarıyla doğrulandı!', 'success');
       
-      // State'leri temizle
       setVerificationStep(false);
       setVerificationCode('');
       setTempToken('');
       closeModal();
       
-      // Form temizle
       setFormData(prev => ({
         ...prev,
         register: {
@@ -685,7 +641,6 @@ const handleLogin = async () => {
         }
       }));
       
-      // Sayfayı yenile
       setTimeout(() => {
         window.location.reload();
       }, 1500);
@@ -709,7 +664,6 @@ const handleLogin = async () => {
     }
   };
 
-  // YENİ - Resend verification code handler
   const handleResendVerificationCode = async () => {
     const t = translations[currentLang as keyof typeof translations];
     
@@ -736,7 +690,6 @@ const handleLogin = async () => {
     }
   };
 
-  // Helper functions
   const updateLoginData = (data: Partial<typeof formData.login>) => {
     setFormData(prev => ({
       ...prev,
@@ -751,37 +704,36 @@ const handleLogin = async () => {
     }));
   };
 
-
-  // Initial data load
   useEffect(() => {
     fetchSiteImages();
     fetchApartments();
     fetchTours();
   }, []);
 
-  // Detail Page Component - params kullanarak
-  const DetailPageWrapper = () => {
-    const { type, id } = useParams();
+  // YENİ - Apartment Slug Detail Wrapper
+  const ApartmentSlugWrapper = () => {
+    const { slug } = useParams();
     const [localLoading, setLocalLoading] = useState(false);
     
     useEffect(() => {
-    // Önce state'den bulmayı dene
-    if (type && id) {
-      if (type === 'apartments') {
-        // Apartments için
-        const apartment = apartments.find(apt => 
-          apt.id === id || 
-          apt._id === id
-        );
-        
-        if (apartment) {
-          setSelectedItem(apartment);
-          setSelectedItemType('apartments');
-        } else if (apartments.length === 0) {
-          // State boşsa API'den çek
-          setLocalLoading(true);
-          apartmentAPI.getOne(id)
-            .then(response => {
+      const fetchApartmentBySlug = async () => {
+        if (slug) {
+          // Önce state'de slug ile arama yap
+          const apartment = apartments.find(apt => 
+            apt.slugs?.tr === slug ||
+            apt.slugs?.en === slug ||
+            apt.slugs?.ar === slug ||
+            apt.slugs?.ru === slug
+          );
+          
+          if (apartment) {
+            setSelectedItem(apartment);
+            setSelectedItemType('apartments');
+          } else {
+            // State'de yoksa API'den çek
+            setLocalLoading(true);
+            try {
+              const response = await apartmentAPI.getBySlug(slug, currentLang);
               const apt = {
                 ...response,
                 id: response._id || response.id,
@@ -790,59 +742,152 @@ const handleLogin = async () => {
               };
               setSelectedItem(apt);
               setSelectedItemType('apartments');
-            })
-            .catch(error => {
+              
+              // Eski URL'den gelindiyse redirect kontrolü
+              if (response.shouldRedirect && response.redirectUrl) {
+                navigateWithLang(response.redirectUrl);
+              }
+            } catch (error) {
               console.error('Apartment fetch error:', error);
               setSelectedItem(null);
-            })
-            .finally(() => setLocalLoading(false));
+            } finally {
+              setLocalLoading(false);
+            }
+          }
         }
-      } else if (type === 'tours') {
-        // Tours için
-        const tour = tours.find(t => 
-          t.id === id || 
-          t._id === id
-        );
-        
-        if (tour) {
-          setSelectedItem(tour);
-          setSelectedItemType('tours');
-        } else if (tours.length === 0) {
-          // State boşsa API'den çek
-          setLocalLoading(true);
-          tourAPI.getOne(id)
-            .then(response => {
-              const tr = {
-                ...response,
-                id: response._id || response.id,
-                _id: response._id || response.id
-              };
-              setSelectedItem(tr);
-              setSelectedItemType('tours');
-            })
-            .catch(error => {
-              console.error('Tour fetch error:', error);
-              setSelectedItem(null);
-            })
-            .finally(() => setLocalLoading(false));
-        }
-      }
-    }
-  }, [type, id, apartments.length, tours.length]);
+      };
+      
+      fetchApartmentBySlug();
+    }, [slug, apartments, currentLang]);
 
-    // Loading durumu
     if (localLoading) {
+      return <PageLoader />;
+    }
+
+    if (!selectedItem && !localLoading) {
       return (
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center px-4">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#ff9800] border-t-transparent mx-auto mb-4"></div>
-            <p className="text-gray-600">Yükleniyor...</p>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">
+              Daire bulunamadı
+            </h2>
+            <button
+              onClick={() => navigateWithLang('/rentals')} 
+              className="bg-[#ff9800] text-white px-6 py-3 rounded-full hover:bg-[#f57c00] transition-colors"
+            >
+              Tüm Dairelere Dön
+            </button>
           </div>
         </div>
       );
     }
 
-    // Henüz seçili item yoksa ve loading de değilse
+    if (selectedItem) {
+      return (
+        <DetailPage
+          selectedItem={selectedItem}
+          selectedItemType="apartments"
+          currentLang={currentLang}
+          setCurrentLang={changeLanguage}
+          translations={translations}
+          setShowLoginModal={() => openModal('login')}
+          setCurrentView={setCurrentView}
+          searchParams={globalSearchParams} 
+        />
+      );
+    }
+
+    return null;
+  };
+
+  // Mevcut DetailPageWrapper (eski ID bazlı)
+  // DetailPageWrapper component'inde güncelleme
+  const DetailPageWrapper = () => {
+    const { type, id } = useParams();
+    const [localLoading, setLocalLoading] = useState(false);
+    
+    useEffect(() => {
+      if (type && id) {
+        if (type === 'apartments') {
+          const apartment = apartments.find(apt => 
+            apt.id === id || 
+            apt._id === id
+          );
+          
+          if (apartment) {
+            setSelectedItem(apartment);
+            setSelectedItemType('apartments');
+            
+            // YENİ - Slug varsa yeni URL'e 301 redirect
+            if (apartment.slugs?.[currentLang]) {
+              const newUrl = currentLang === 'tr' 
+                ? `/apartment/${apartment.slugs[currentLang]}`
+                : `/${currentLang}/apartment/${apartment.slugs[currentLang]}`;
+              
+              // Browser'da replace ile yönlendir (geri butonu sorunlarını önler)
+              window.history.replaceState(null, '', newUrl);
+              navigateWithLang(`/apartment/${apartment.slugs[currentLang]}`);
+              return;
+            }
+          } else if (apartments.length === 0) {
+            setLocalLoading(true);
+            apartmentAPI.getOne(id)
+              .then(response => {
+                const apt = {
+                  ...response,
+                  id: response._id || response.id,
+                  _id: response._id || response.id,
+                  reservations: response.reservations || []
+                };
+                setSelectedItem(apt);
+                setSelectedItemType('apartments');
+                
+                // Slug varsa yeni URL'e yönlendir
+                if (apt.slugs?.[currentLang]) {
+                  navigateWithLang(`/apartment/${apt.slugs[currentLang]}`);
+                }
+              })
+              .catch(error => {
+                console.error('Apartment fetch error:', error);
+                setSelectedItem(null);
+              })
+              .finally(() => setLocalLoading(false));
+          }
+        } else if (type === 'tours') {
+          const tour = tours.find(t => 
+            t.id === id || 
+            t._id === id
+          );
+          
+          if (tour) {
+            setSelectedItem(tour);
+            setSelectedItemType('tours');
+          } else if (tours.length === 0) {
+            setLocalLoading(true);
+            tourAPI.getOne(id)
+              .then(response => {
+                const tr = {
+                  ...response,
+                  id: response._id || response.id,
+                  _id: response._id || response.id
+                };
+                setSelectedItem(tr);
+                setSelectedItemType('tours');
+              })
+              .catch(error => {
+                console.error('Tour fetch error:', error);
+                setSelectedItem(null);
+              })
+              .finally(() => setLocalLoading(false));
+          }
+        }
+      }
+    }, [type, id, apartments.length, tours.length, currentLang]);
+
+    if (localLoading) {
+      return <PageLoader />;
+    }
+
     if (!selectedItem && !localLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center px-4">
@@ -861,7 +906,6 @@ const handleLogin = async () => {
       );
     }
 
-    // selectedItem varsa DetailPage'i render et
     if (selectedItem) {
       return (
         <DetailPage
@@ -880,7 +924,6 @@ const handleLogin = async () => {
     return null;
   };
 
-  // YENİ - LanguageRoutes component
   const LanguageRoutes = ({ currentLang, changeLanguage, ...props }: any) => {
     return (
       <Routes>
@@ -893,6 +936,14 @@ const handleLogin = async () => {
               currentLang={currentLang}
               setCurrentLang={changeLanguage}
             />
+          </>
+        } />
+        
+        {/* YENİ - Apartment Slug Route */}
+        <Route path="/apartment/:slug" element={
+          <>
+            <SEOHead type="apartment" currentLang={currentLang} />
+            <ApartmentSlugWrapper />
           </>
         } />
         
@@ -920,7 +971,7 @@ const handleLogin = async () => {
           </>
         } />
         
-        {/* Detail Sayfası */}
+        {/* Eski Detail Route (Geriye dönük uyumluluk) */}
         <Route path="/detail/:type/:id" element={
           <DetailWithSEO 
             {...props}
@@ -987,8 +1038,6 @@ const handleLogin = async () => {
     );
   };
 
-  // YENİ - DetailWithSEO component
-  // YENİ - DetailWithSEO component - Props kullanılan versiyon
   const DetailWithSEO = (props: any) => {
     const { type, id } = useParams();
     const { currentLang, changeLanguage, ...restProps } = props;
@@ -1005,7 +1054,6 @@ const handleLogin = async () => {
     );
   };
 
-  // YENİ - allProps objesi
   const allProps = {
     apartments,
     tours,
@@ -1028,143 +1076,138 @@ const handleLogin = async () => {
     isGlobalSearching
   };
 
-    return (
-      <div className="min-h-screen flex flex-col">
-        {/* Ana içerik wrapper */}
-        <main className="flex-grow">
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Türkçe (default) Routes */}
-              <Route path="/*" element={
-                <LanguageRoutes 
-                  currentLang="tr" 
-                  changeLanguage={changeLanguage}
-                  {...allProps}
-                />
-              } />
-              
-              {/* İngilizce Routes */}
-              <Route path="/en/*" element={
-                <LanguageRoutes 
-                  currentLang="en" 
-                  changeLanguage={changeLanguage}
-                  {...allProps}
-                />
-              } />
-              
-              {/* Arapça Routes */}
-              <Route path="/ar/*" element={
-                <LanguageRoutes 
-                  currentLang="ar" 
-                  changeLanguage={changeLanguage}
-                  {...allProps}
-                />
-              } />
-              
-              {/* Rusça Routes */}
-              <Route path="/ru/*" element={
-                <LanguageRoutes 
-                  currentLang="ru" 
-                  changeLanguage={changeLanguage}
-                  {...allProps}
-                />
-              } />
-            </Routes>
-          </Suspense>
-        </main>
+  return (
+    <div className="min-h-screen flex flex-col">
+      <main className="flex-grow">
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Türkçe Routes */}
+            <Route path="/*" element={
+              <LanguageRoutes 
+                currentLang="tr" 
+                changeLanguage={changeLanguage}
+                {...allProps}
+              />
+            } />
+            
+            {/* İngilizce Routes */}
+            <Route path="/en/*" element={
+              <LanguageRoutes 
+                currentLang="en" 
+                changeLanguage={changeLanguage}
+                {...allProps}
+              />
+            } />
+            
+            {/* Arapça Routes */}
+            <Route path="/ar/*" element={
+              <LanguageRoutes 
+                currentLang="ar" 
+                changeLanguage={changeLanguage}
+                {...allProps}
+              />
+            } />
+            
+            {/* Rusça Routes */}
+            <Route path="/ru/*" element={
+              <LanguageRoutes 
+                currentLang="ru" 
+                changeLanguage={changeLanguage}
+                {...allProps}
+              />
+            } />
+          </Routes>
+        </Suspense>
+      </main>
 
-        {/* Footer - TÜM SAYFALARDA GÖRÜNÜR */}
-        <Footer 
-          currentLang={currentLang}
-          translations={translations}
-        />
+      <Footer 
+        currentLang={currentLang}
+        translations={translations}
+      />
 
-        {/* Modals */}
-        <DetailModal
-          isOpen={activeModal === 'detail'}
-          onClose={handleCloseModal}
-          item={modalItem}
-          itemType={modalItemType}
-          currentLang={currentLang}
-          translations={translations}
-          onDetailNavigation={handleDetailNavigation}
-          searchParams={globalSearchParams}
-          onShowLoginModal={() => openModal('login')}
-        />
+      {/* Modals */}
+      <DetailModal
+        isOpen={activeModal === 'detail'}
+        onClose={handleCloseModal}
+        item={modalItem}
+        itemType={modalItemType}
+        currentLang={currentLang}
+        translations={translations}
+        onDetailNavigation={handleDetailNavigation}
+        searchParams={globalSearchParams}
+        onShowLoginModal={() => openModal('login')}
+      />
 
-        {/* WhatsApp Redirect Modal */}
-        <WhatsAppRedirectModal
-          isOpen={showWhatsAppModal}
-          onClose={() => setShowWhatsAppModal(false)}
-          whatsappUrl={whatsAppData.url}
-          reservationNumber={whatsAppData.reservationNumber}
-          translations={translations}
-          currentLang={currentLang}
-        />
-        
-        <LoginModal
-          isOpen={activeModal === 'login'}
-          onClose={closeModal}
-          loginData={formData.login}
-          setLoginData={updateLoginData}
-          onLogin={handleLogin}
-          onSwitchToRegister={() => {
-            closeModal();
-            openModal('register');
-          }}
-          onSwitchToForgotPassword={() => setActiveModal('forgotPassword')}
-          translations={translations}
-          currentLang={currentLang}
-        />
+      <WhatsAppRedirectModal
+        isOpen={showWhatsAppModal}
+        onClose={() => setShowWhatsAppModal(false)}
+        whatsappUrl={whatsAppData.url}
+        reservationNumber={whatsAppData.reservationNumber}
+        translations={translations}
+        currentLang={currentLang}
+      />
+      
+      <LoginModal
+        isOpen={activeModal === 'login'}
+        onClose={closeModal}
+        loginData={formData.login}
+        setLoginData={updateLoginData}
+        onLogin={handleLogin}
+        onSwitchToRegister={() => {
+          closeModal();
+          openModal('register');
+        }}
+        onSwitchToForgotPassword={() => setActiveModal('forgotPassword')}
+        translations={translations}
+        currentLang={currentLang}
+      />
 
-        {/* Forgot Password Modal - YENİ */}
-        <ForgotPasswordModal
-          isOpen={activeModal === 'forgotPassword'}
-          onClose={() => setActiveModal(null)}
-          onBackToLogin={() => setActiveModal('login')}
-          translations={translations}
-          currentLang={currentLang}
-        />
-        
-        <RegisterModal
-          isOpen={activeModal === 'register'}
-          onClose={closeModal}
-          registerData={formData.register}
-          setRegisterData={updateRegisterData}
-          onRegister={handleRegister}
-          onSwitchToLogin={() => {
-            closeModal();
-            openModal('login');
-          }}
-          translations={translations}
-          currentLang={currentLang}
-          verificationStep={verificationStep}
-          verificationCode={verificationCode}
-          setVerificationCode={setVerificationCode}
-          onVerifyCode={handleVerifyEmail}
-          onResendCode={handleResendVerificationCode}
-          isVerifying={isVerifying}
-          isResending={isResending}
-          tempToken={tempToken}
-        />
-        
-        {/* Toast Notifications - Mobile optimized position */}
-        <div className={`fixed z-50 space-y-2 ${
-          isMobile 
-            ? 'top-20 left-4 right-4' 
-            : 'bottom-4 right-4'
-        }`}>
-          {toasts.map((toast) => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              onClose={() => removeToast(toast.id)}
-            />
-          ))}
-        </div>
+      <ForgotPasswordModal
+        isOpen={activeModal === 'forgotPassword'}
+        onClose={() => setActiveModal(null)}
+        onBackToLogin={() => setActiveModal('login')}
+        translations={translations}
+        currentLang={currentLang}
+      />
+      
+      <RegisterModal
+        isOpen={activeModal === 'register'}
+        onClose={closeModal}
+        registerData={formData.register}
+        setRegisterData={updateRegisterData}
+        onRegister={handleRegister}
+        onSwitchToLogin={() => {
+          closeModal();
+          openModal('login');
+        }}
+        translations={translations}
+        currentLang={currentLang}
+        verificationStep={verificationStep}
+        verificationCode={verificationCode}
+        setVerificationCode={setVerificationCode}
+        onVerifyCode={handleVerifyEmail}
+        onResendCode={handleResendVerificationCode}
+        isVerifying={isVerifying}
+        isResending={isResending}
+        tempToken={tempToken}
+      />
+      
+      <div className={`fixed z-50 space-y-2 ${
+        isMobile 
+          ? 'top-20 left-4 right-4' 
+          : 'bottom-4 right-4'
+      }`}>
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default App;

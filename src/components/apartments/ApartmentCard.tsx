@@ -3,7 +3,9 @@ import { MapPin, Users, Home, Calendar, Euro, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { favoritesAPI } from '../../utils/api';
 
-// TypeScript Interfaces
+// components/apartments/ApartmentCard.tsx
+
+// TypeScript Interfaces bölümünde güncelleme:
 interface Translation {
   title?: string;
   description?: string;
@@ -19,12 +21,19 @@ interface Apartment {
     ru?: Translation;
     [key: string]: Translation | undefined;
   };
+  slugs?: {  // ← YENİ EKLE
+    tr: string;
+    en: string;
+    ar: string;
+    ru: string;
+    [key: string]: string;
+  };
   title: string;
   internalCode?: string;
   images: Array<{
     url: string;
     roomType?: string;
-  }>;
+  }> | string[];  // ← string[] desteği de ekle
   neighborhood: string;
   district: string;
   city: string;
@@ -35,8 +44,24 @@ interface Apartment {
   currency?: string;
   status: string;
   reservations?: any[];
-  calculatedTotalPrice?: number; // Backend'den gelen
-  avgDailyPrice?: number; // Backend'den gelen
+  calculatedTotalPrice?: number;
+  avgDailyPrice?: number;
+  
+  // DetailPage'de kullanılan ek alanlar:
+  bedrooms?: number;
+  rooms?: number;
+  bathrooms?: number;
+  size?: number;
+  area?: number;
+  amenities?: string[];
+  checkInTime?: string;
+  checkOutTime?: string;
+  rules?: string[];
+  safetyFeatures?: string[];
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 interface SearchParams {
@@ -141,15 +166,28 @@ const MobileApartmentCard: React.FC<ApartmentCardProps> = ({
 
   return (
     <div 
-      onClick={() => onOpenModal(apartment, "apartments")}
+      onClick={() => {
+        // YENİ - Slug varsa slug URL'e git
+        if (apartment.slugs?.[currentLang]) {
+          const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
+          window.location.href = `${langPrefix}/apartment/${apartment.slugs[currentLang]}`;
+        } else {
+          // Fallback - eski modal sistemi
+          onOpenModal(apartment, "apartments");
+        }
+      }}
       className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]"
     >
       {/* Görsel */}
       <div className="h-32 relative">
         <img
-          src={apartment.images[0]?.url || '/placeholder-apartment.jpg'}
+          src={
+            typeof apartment.images[0] === 'string'
+              ? apartment.images[0]
+              : apartment.images[0]?.url || '/placeholder-apartment.jpg'
+          }
           alt={title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />
         
@@ -284,11 +322,15 @@ const DesktopApartmentCard: React.FC<ApartmentCardProps> = ({
         }}
       >
         <img
-          src={apartment.images[0]?.url || '/placeholder-apartment.jpg'}
+          src={
+            typeof apartment.images[0] === 'string' 
+              ? apartment.images[0] 
+              : apartment.images[0]?.url || '/placeholder-apartment.jpg'
+          }
           alt={title}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover"
           loading="lazy"
-        />
+/>
       
         {/* Daire Kodu */}
         {showInternalCode && apartment.internalCode && (
@@ -381,7 +423,14 @@ const DesktopApartmentCard: React.FC<ApartmentCardProps> = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onOpenModal(apartment, "apartments");
+            // YENİ - Slug varsa direkt detay sayfasına git
+            if (apartment.slugs?.[currentLang]) {
+              const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
+              window.location.href = `${langPrefix}/apartment/${apartment.slugs[currentLang]}`;
+            } else {
+              // Fallback - eski modal sistemi
+              onOpenModal(apartment, "apartments");
+            }
           }}
           className="w-full bg-[#1a4a3a] text-white py-4 rounded-2xl font-semibold hover:bg-[#0f3426] transition-colors flex items-center justify-center gap-2"
         >

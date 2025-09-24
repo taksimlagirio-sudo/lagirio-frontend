@@ -19,12 +19,19 @@ interface Item {
   id: string | number;
   _id?: string;
   title: string;
-  translations?: {  // ← EKLE
+  translations?: {
     tr?: { title?: string; description?: string };
     en?: { title?: string; description?: string };
     ar?: { title?: string; description?: string };
     ru?: { title?: string; description?: string };
     [key: string]: { title?: string; description?: string } | undefined;
+  };
+  slugs?: {  // ← BU SATIRI EKLE
+    tr: string;
+    en: string;
+    ar: string;
+    ru: string;
+    [key: string]: string;  // ← Dynamic key support
   };
   images: ItemImage[] | string[];
   internalCode?: string;
@@ -39,11 +46,21 @@ interface Item {
   rooms?: number;
   bathrooms?: number;
   size?: number;
+  area?: number;  // ← area da ekleyelim
+  bedrooms?: number;  // ← bedrooms da ekleyelim
   amenities?: string[];
   duration?: string;
   maxPeople?: number;
   defaultMinStay?: number;
   defaultAdultPriceIncrease?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+  rules?: string[];
+  safetyFeatures?: string[];
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 interface DetailModalProps {
@@ -522,11 +539,14 @@ const DetailModal: React.FC<DetailModalProps> = ({
               {/* Book Now Button */}
               <button
                 onClick={() => {
-                  onDetailNavigation(true);
-                  // Modal kapandıktan sonra scroll
-                  setTimeout(() => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }, 300);
+                  // YENİ - Slug varsa direkt URL'e git
+                  if (isApartment && item?.slugs?.[currentLang]) {
+                    const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
+                    window.location.href = `${langPrefix}/apartment/${item.slugs[currentLang]}`;
+                  } else {
+                    // Eski sistem
+                    onDetailNavigation(true);
+                  }
                 }}
                 className="bg-[#0a2e23] text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2"
               >

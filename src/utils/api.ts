@@ -148,6 +148,12 @@ export const apartmentAPI = {
   
   getOne: (id: string) => apiCall(`/apartments/${id}`),
 
+  // YENİ - Slug ile apartment getir
+  getBySlug: (slug: string, lang?: string) => {
+    const params = lang ? `?lang=${lang}` : '';
+    return apiCall(`/apartments/slug/${slug}${params}`);
+  },
+
   // YENİ - Featured apartments'ı getir
   getFeatured: () => apiCall('/apartments/featured'),
   
