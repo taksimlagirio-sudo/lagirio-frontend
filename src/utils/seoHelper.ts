@@ -1,3 +1,5 @@
+// utils/seoUtils.ts - DÜZELTİLMİŞ
+
 interface SEOData {
   title?: string;
   description?: string;
@@ -48,7 +50,9 @@ export const updateMetaTags = (data: SEOData): void => {
 };
 
 const updateMetaTag = (name: string, content: string): void => {
-  let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+  // TİP AÇIKÇA BELİRTİLDİ
+  let meta: HTMLMetaElement | null = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+  
   if (!meta) {
     meta = document.createElement('meta');
     meta.name = name;
@@ -58,7 +62,9 @@ const updateMetaTag = (name: string, content: string): void => {
 };
 
 const updateMetaProperty = (property: string, content: string): void => {
-  let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+  // TİP AÇIKÇA BELİRTİLDİ
+  let meta: HTMLMetaElement | null = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+  
   if (!meta) {
     meta = document.createElement('meta');
     meta.setAttribute('property', property);

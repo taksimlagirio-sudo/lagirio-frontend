@@ -16,7 +16,7 @@ import { useAuth } from '../components/contexts/AuthContext';
 import { favoritesAPI } from '../utils/api';
 import { translateAmenity } from '../utils/amenityTranslations';
 import { getRuleIconComponent, getSafetyIconComponent, translateRule, translateSafety } from '../utils/rulesTranslations';
-
+import SEOHead from '../components/SEOHead'; // SEOHead import ekledik
 
 interface DetailPageProps {
   selectedItem: any;
@@ -47,7 +47,6 @@ const getRoomTypeConfig = (t: any) => ({
   balcony: { label: t.roomTypes?.balcony || 'Balkon/Teras', icon: TreePine },
   other: { label: t.roomTypes?.other || 'Diğer', icon: Camera }
 });
-
 
 const DetailPage: React.FC<DetailPageProps> = ({
   selectedItem,
@@ -329,8 +328,74 @@ const DetailPage: React.FC<DetailPageProps> = ({
   
   if (!selectedItem) return null;
 
+  // SEO için gerekli title ve description
+  const seoTitle = selectedItem.translations?.[currentLang]?.title || 
+                   selectedItem.translations?.tr?.title || 
+                   selectedItem.title;
+  const seoDescription = selectedItem.translations?.[currentLang]?.description || 
+                        selectedItem.translations?.tr?.description || 
+                        selectedItem.description;
+
   return (
     <div className="min-h-screen bg-[#f5f0e8] overflow-x-hidden">
+      {/* SEOHead COMPONENT - EN ÜSTTE */}
+      <SEOHead 
+        type={isApartment ? "apartment" : "tour"}
+        id={apartmentId}
+        currentLang={currentLang}
+        customData={{
+          title: seoTitle,
+          description: seoDescription,
+          
+          // TÜM GÖRSELLERİ GÖNDER
+          images: normalizedImages,
+          image: normalizedImages[0]?.url || normalizedImages[0],
+          
+          // URL - SLUG KULLANIYOR
+          url: `https://lagirio.com${currentLang === 'tr' ? '' : `/${currentLang}`}/apartment/${selectedItem?.slugs?.[currentLang] || apartmentId}`,
+          
+          // FİYAT BİLGİLERİ
+          price: calculatedPrice?.totalPrice || basePrice,
+          minPrice: basePrice,
+          maxPrice: Math.round(basePrice * 1.5),
+          pricePerNight: calculatedPrice?.pricePerNight || basePrice,
+          
+          // APARTMAN ÖZELLİKLERİ
+          bedrooms: selectedItem?.bedrooms || selectedItem?.rooms,
+          bathrooms: selectedItem?.bathrooms,
+          size: selectedItem?.area || selectedItem?.size,
+          maxCapacity: selectedItem?.maxCapacity || selectedItem?.capacity,
+          
+          // OLANAKLAR
+          amenities: selectedItem?.amenities,
+          
+          // KOORDİNATLAR
+          coordinates: selectedItem?.coordinates,
+          
+          // ADRES
+          neighborhood: selectedItem?.neighborhood,
+          district: selectedItem?.district,
+          city: selectedItem?.city || "İstanbul",
+          
+          // CHECK-IN/OUT
+          checkInTime: selectedItem?.checkInTime || "14:00",
+          checkOutTime: selectedItem?.checkOutTime || "11:00",
+          
+          // MÜSAİTLİK
+          availability: searchParams?.checkIn && searchParams?.checkOut ? {
+            checkIn: searchParams.checkIn,
+            checkOut: searchParams.checkOut,
+            nights: calculatedPrice?.nights,
+            available: true
+          } : undefined,
+          
+          // İNDİRİM BİLGİSİ
+          hasDiscount: calculatedPrice?.hasDiscount,
+          originalPrice: calculatedPrice?.totalOriginalPrice,
+          discountAmount: calculatedPrice?.totalDiscountAmount
+        }}
+      />
+
       {/* Hero Section - Mobilde daha küçük */}
       <div className="relative h-[60vh] md:min-h-screen overflow-hidden">
         <div 
@@ -341,9 +406,10 @@ const DetailPage: React.FC<DetailPageProps> = ({
         >
           <img
             src={displayImages[currentImageIndex]?.url || displayImages[currentImageIndex]}
-            alt={selectedItem.title}
+            alt={`${seoTitle} - ${displayImages[currentImageIndex]?.roomType ? roomTypeConfig[displayImages[currentImageIndex].roomType as keyof typeof roomTypeConfig]?.label : 'Ana Görsel'}`}
             className="w-full h-full object-cover"
-            loading="lazy"
+            loading="eager"
+            itemProp="image"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70"></div>
         </div>
@@ -354,24 +420,27 @@ const DetailPage: React.FC<DetailPageProps> = ({
           <div className="flex items-center justify-between p-4">
             <button
               onClick={() => setCurrentView("rentals")}
-              className="bg-white/20 backdrop-blur-md rounded-full p-2 flex-shrink-0" // flex-shrink-0 ekledik
+              className="bg-white/20 backdrop-blur-md rounded-full p-2 flex-shrink-0"
+              aria-label="Geri dön"
             >
               <ChevronLeft size={24} className="text-white" />
             </button>
             
-            <div className="flex gap-2 flex-shrink-0"> {/* flex-shrink-0 ekledik */}
+            <div className="flex gap-2 flex-shrink-0">
               <button
                 onClick={handleToggleFavorite}
                 disabled={favoriteLoading}
                 className={`p-2 rounded-full backdrop-blur-md ${
                   isLiked ? 'bg-red-500' : 'bg-white/20'
                 } text-white`}
+                aria-label={isLiked ? "Favorilerden çıkar" : "Favorilere ekle"}
               >
                 <Heart size={20} className={isLiked ? 'fill-current' : ''} />
               </button>
               <button
                 onClick={() => setShowShareMenu(!showShareMenu)}
                 className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white"
+                aria-label="Paylaş"
               >
                 <Share2 size={20} />
               </button>
@@ -398,6 +467,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
             <button
               onClick={() => setCurrentView("rentals")}
               className="hidden md:flex items-center text-white hover:text-[#f5e6d3] mb-6 transition-all transform hover:-translate-x-1"
+              aria-label="Listeye geri dön"
             >
               <ChevronLeft size={20} />
               <span className="ml-1 font-medium">{t.backToList || 'Geri Dön'}</span>
@@ -414,24 +484,28 @@ const DetailPage: React.FC<DetailPageProps> = ({
                       className={`h-1.5 rounded-full transition-all flex-shrink-0 ${
                         index === currentImageIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/50'
                       }`}
+                      aria-label={`Görsel ${index + 1}`}
                     />
                   ))}
                 </div>
                 
-                <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold text-white mb-2 md:mb-4 line-clamp-2 break-words max-w-full">
-                  {selectedItem.translations?.[currentLang]?.title || 
-                  selectedItem.translations?.tr?.title || 
-                  selectedItem.title}
+                <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold text-white mb-2 md:mb-4 line-clamp-2 break-words max-w-full" itemProp="name">
+                  {seoTitle}
                 </h1>
                 
                 <div className="flex flex-wrap items-center gap-2 md:gap-4 text-white/90 max-w-full">
-                  <div className="flex items-center min-w-0">
+                  <div className="flex items-center min-w-0" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
                     <MapPin size={16} className="md:hidden flex-shrink-0" />
                     <MapPin size={20} className="hidden md:block flex-shrink-0" />
                     <span className="ml-1 md:ml-2 text-xs md:text-sm lg:text-base truncate max-w-[200px]">
-                      {isApartment
-                        ? `${selectedItem.neighborhood}, ${selectedItem.district}`
-                        : selectedItem.meetingPoint}
+                      {isApartment ? (
+                        <>
+                          <span itemProp="addressLocality">{selectedItem.neighborhood}</span>, 
+                          <span itemProp="addressRegion">{selectedItem.district}</span>
+                        </>
+                      ) : (
+                        selectedItem.meetingPoint
+                      )}
                     </span>
                   </div>
                 </div>
@@ -445,17 +519,18 @@ const DetailPage: React.FC<DetailPageProps> = ({
                       <div className="h-12 bg-white/20 rounded-lg w-40"></div>
                     </div>
                   ) : calculatedPrice ? (
-                    <div className="inline-block">
+                    <div className="inline-block" itemProp="offers" itemScope itemType="https://schema.org/Offer">
                       {calculatedPrice.hasDiscount && calculatedPrice.totalOriginalPrice && (
                         <div className="text-white/60 text-2xl line-through mb-1">
-                          €{calculatedPrice.totalOriginalPrice}
+                          <span itemProp="highPrice">€{calculatedPrice.totalOriginalPrice}</span>
                         </div>
                       )}
                       
                       <div className="flex items-baseline gap-3">
-                        <span className="text-5xl lg:text-6xl font-bold text-white">
+                        <span className="text-5xl lg:text-6xl font-bold text-white" itemProp="price">
                           €{calculatedPrice.totalPrice}
                         </span>
+                        <meta itemProp="priceCurrency" content="EUR" />
                         <div className="text-white/80">
                           <div className="text-sm">{calculatedPrice.nights} {t.nights || 'gece'}</div>
                           {searchParams.adults > 1 && (
@@ -488,6 +563,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                     ? 'bg-red-500 text-white' 
                     : 'bg-white/20 text-white hover:bg-white/30'
                 } ${favoriteLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                aria-label={isLiked ? "Favorilerden çıkar" : "Favorilere ekle"}
               >
                 {favoriteLoading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
@@ -500,6 +576,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                 <button
                   onClick={() => setShowShareMenu(!showShareMenu)}
                   className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all"
+                  aria-label="Paylaş"
                 >
                   <Share2 size={20} />
                 </button>
@@ -537,6 +614,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                 )
               }
               className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md rounded-full p-3 hover:bg-white/20 transition-all transform hover:scale-110"
+              aria-label="Önceki görsel"
             >
               <ChevronLeft size={28} className="text-white" />
             </button>
@@ -547,6 +625,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                 )
               }
               className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md rounded-full p-3 hover:bg-white/20 transition-all transform hover:scale-110"
+              aria-label="Sonraki görsel"
             >
               <ChevronRight size={28} className="text-white" />
             </button>
@@ -599,6 +678,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
       </div>
 
       {/* Mobil Fiyat Kartı - Sayfanın üstünde */}
+      {/* Mobil Fiyat Kartı - Sayfanın üstünde */}
       <div className="md:hidden bg-white p-4 shadow-sm border-b">
         <div className="flex items-center justify-between">
           <div>
@@ -614,8 +694,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
               </div>
             ) : (
               <div>
-                <p className="text-lg font-bold text-[#0a2e23]">€{basePrice}</p>
-                <p className="text-xs text-gray-600">{t.perNight || 'gecelik'}</p>
+                <p className="text-sm font-medium text-gray-700">{t.selectDateForPrice || 'Fiyat için tarih seçin'}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{t.selectDatesSmall || 'Tarih seçiniz'}</p>
               </div>
             )}
           </div>
@@ -708,11 +788,12 @@ const DetailPage: React.FC<DetailPageProps> = ({
                       }}
                       className="flex-shrink-0 w-[250px] h-[180px] rounded-xl overflow-hidden"
                     >
-                      <img
+                       <img
                         src={img.url || img}
-                        alt={`${selectedItem.title} - ${index + 1}`}
+                        alt={`${seoTitle} - ${img.roomType ? roomTypeConfig[img.roomType as keyof typeof roomTypeConfig]?.label : 'Fotoğraf'} ${index + 1}`}
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        itemProp="image"
                       />
                     </div>
                   ))}
@@ -782,9 +863,10 @@ const DetailPage: React.FC<DetailPageProps> = ({
                     <div className={`relative ${index === 0 ? 'aspect-square' : 'aspect-[4/3]'}`}>
                       <img
                         src={img.url || img}
-                        alt={`${selectedItem.title} - ${index + 1}`}
+                        alt={`${seoTitle} - ${img.roomType ? roomTypeConfig[img.roomType as keyof typeof roomTypeConfig]?.label : 'Fotoğraf'} ${index + 1}`}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         loading="lazy"
+                        itemProp="image"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
                       {index === 4 && displayImages.length > 5 && (
@@ -817,14 +899,10 @@ const DetailPage: React.FC<DetailPageProps> = ({
             {/* Açıklama */}
             <div id="overview" className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-lg transition-shadow">
               <h2 className="text-2xl md:text-3xl font-bold text-[#0a2e23] mb-4 md:mb-6">
-                {selectedItem.translations?.[currentLang]?.title || 
-                selectedItem.translations?.tr?.title || 
-                selectedItem.title}
+                {seoTitle}
               </h2>
-              <p className="text-gray-700 leading-relaxed text-base md:text-lg">
-                {selectedItem.translations?.[currentLang]?.description || 
-                selectedItem.translations?.tr?.description || 
-                selectedItem.description}
+              <p className="text-gray-700 leading-relaxed text-base md:text-lg" itemProp="description">
+                {seoDescription}
               </p>
             </div>
 
@@ -842,7 +920,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                     const Icon = IconComponent || Check;
                     
                     return (
-                      <div key={index} className="flex items-center gap-3 p-2 md:p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={index} className="flex items-center gap-3 p-2 md:p-3 rounded-lg hover:bg-gray-50 transition-colors" itemProp="amenityFeature">
                         <Icon className="text-[#0a2e23] flex-shrink-0" size={18} />
                         <span className="text-sm md:text-base text-gray-700">{translateAmenity(amenity, currentLang)}</span>
                       </div>
@@ -876,11 +954,11 @@ const DetailPage: React.FC<DetailPageProps> = ({
                     <div className="space-y-2 md:space-y-3">
                       <div className="flex items-center gap-2 md:gap-3 text-gray-700">
                         <span className="text-lg md:text-xl">🕐</span>
-                        <span className="text-sm md:text-base">{t.checkIn || 'Giriş'}: {selectedItem.checkInTime || '14:00'} {t.after || 'sonrası'}</span>
+                        <span className="text-sm md:text-base">{t.checkIn || 'Giriş'}: <time itemProp="checkinTime">{selectedItem.checkInTime || '14:00'}</time> {t.after || 'sonrası'}</span>
                       </div>
                       <div className="flex items-center gap-2 md:gap-3 text-gray-700">
                         <span className="text-lg md:text-xl">🕐</span>
-                        <span className="text-sm md:text-base">{t.checkOut || 'Çıkış'}: {selectedItem.checkOutTime || '11:00'} {t.before || 'öncesi'}</span>
+                        <span className="text-sm md:text-base">{t.checkOut || 'Çıkış'}: <time itemProp="checkoutTime">{selectedItem.checkOutTime || '11:00'}</time> {t.before || 'öncesi'}</span>
                       </div>
                       {selectedItem.rules && selectedItem.rules.length > 0 ? (
                         selectedItem.rules.map((rule: string, index: number) => {
@@ -915,54 +993,54 @@ const DetailPage: React.FC<DetailPageProps> = ({
                           </div>
                         </>
                       )}
-                      </div>
-                      </div>
+                    </div>
+                  </div>
 
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-3 md:mb-4 text-base md:text-lg">{t.safetyAndHealth || 'Güvenlik ve Sağlık'}</h4>
-                        <div className="space-y-2 md:space-y-3">
-                          {selectedItem.safetyFeatures && selectedItem.safetyFeatures.length > 0 ? (
-                            selectedItem.safetyFeatures.map((feature: string, index: number) => {
-                              const translatedFeature = translateSafety(feature, currentLang);
-                              const IconComponent = getSafetyIconComponent(feature);
-                              
-                              return (
-                                <div key={index} className="flex items-center gap-2 md:gap-3 text-gray-700">
-                                  <div className="text-green-600 flex-shrink-0">
-                                    <IconComponent size={18} className="md:hidden" />
-                                    <IconComponent size={20} className="hidden md:block" />
-                                  </div>
-                                  <span className="text-sm md:text-base">{translatedFeature}</span>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <>
-                              <div className="flex items-center gap-2 md:gap-3 text-gray-700">
-                                <div className="text-green-600 flex-shrink-0">
-                                  <AlertCircle size={18} className="md:hidden" />
-                                  <AlertCircle size={20} className="hidden md:block" />
-                                </div>
-                                <span className="text-sm md:text-base">{translateSafety('Duman dedektörü', currentLang)}</span>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3 md:mb-4 text-base md:text-lg">{t.safetyAndHealth || 'Güvenlik ve Sağlık'}</h4>
+                    <div className="space-y-2 md:space-y-3">
+                      {selectedItem.safetyFeatures && selectedItem.safetyFeatures.length > 0 ? (
+                        selectedItem.safetyFeatures.map((feature: string, index: number) => {
+                          const translatedFeature = translateSafety(feature, currentLang);
+                          const IconComponent = getSafetyIconComponent(feature);
+                          
+                          return (
+                            <div key={index} className="flex items-center gap-2 md:gap-3 text-gray-700">
+                              <div className="text-green-600 flex-shrink-0">
+                                <IconComponent size={18} className="md:hidden" />
+                                <IconComponent size={20} className="hidden md:block" />
                               </div>
-                              <div className="flex items-center gap-2 md:gap-3 text-gray-700">
-                                <div className="text-green-600 flex-shrink-0">
-                                  <HeartIcon size={18} className="md:hidden" />
-                                  <HeartIcon size={20} className="hidden md:block" />
-                                </div>
-                                <span className="text-sm md:text-base">{translateSafety('İlk yardım çantası', currentLang)}</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      </div>
-                      </div>
+                              <span className="text-sm md:text-base">{translatedFeature}</span>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 md:gap-3 text-gray-700">
+                            <div className="text-green-600 flex-shrink-0">
+                              <AlertCircle size={18} className="md:hidden" />
+                              <AlertCircle size={20} className="hidden md:block" />
+                            </div>
+                            <span className="text-sm md:text-base">{translateSafety('Duman dedektörü', currentLang)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 md:gap-3 text-gray-700">
+                            <div className="text-green-600 flex-shrink-0">
+                              <HeartIcon size={18} className="md:hidden" />
+                              <HeartIcon size={20} className="hidden md:block" />
+                            </div>
+                            <span className="text-sm md:text-base">{translateSafety('İlk yardım çantası', currentLang)}</span>
+                          </div>
+                        </>
                       )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Takvim - Mobilde daha kompakt */}
             {isApartment && (
-             <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-lg transition-shadow">
+              <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-lg transition-shadow">
                 <h3 className="text-xl md:text-2xl font-bold text-[#0a2e23] mb-4 md:mb-6 flex items-center">
                   <Calendar size={24} className="md:hidden mr-2" />
                   <Calendar size={28} className="hidden md:block mr-3" />
@@ -977,16 +1055,16 @@ const DetailPage: React.FC<DetailPageProps> = ({
                         {t.selectedDates || 'Seçtiğiniz tarihler:'}
                       </p>
                       <p className="text-sm md:text-base text-gray-600 font-semibold">
-                        {new Date(searchParams.checkIn).toLocaleDateString('tr-TR', {
+                        <time itemProp="availabilityStarts">{new Date(searchParams.checkIn).toLocaleDateString('tr-TR', {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric'
-                        })} - {' '}
-                        {new Date(searchParams.checkOut).toLocaleDateString('tr-TR', {
+                        })}</time> - {' '}
+                        <time itemProp="availabilityEnds">{new Date(searchParams.checkOut).toLocaleDateString('tr-TR', {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric'
-                        })}
+                        })}</time>
                       </p>
                       <p className="text-xs md:text-sm text-gray-500 mt-3 md:mt-4">
                         {calculatedPrice?.nights} {t.nights || 'gece'} • €{calculatedPrice?.totalPrice}
@@ -1006,7 +1084,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
             )}
 
             {/* Konum - Mobilde daha kompakt */}
-            <div id="location" className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-lg transition-shadow">
+            <div id="location" className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-sm hover:shadow-lg transition-shadow" itemProp="geo" itemScope itemType="https://schema.org/GeoCoordinates">
               <h3 className="text-xl md:text-2xl font-bold text-[#0a2e23] mb-4 md:mb-6 flex items-center">
                 <MapPin size={24} className="md:hidden mr-2" />
                 <MapPin size={28} className="hidden md:block mr-3" />
@@ -1015,6 +1093,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
               
               {selectedItem.coordinates?.lat && selectedItem.coordinates?.lng ? (
                 <>
+                  <meta itemProp="latitude" content={selectedItem.coordinates.lat} />
+                  <meta itemProp="longitude" content={selectedItem.coordinates.lng} />
                   <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-100">
                     <div className="aspect-video">
                       <iframe
@@ -1025,6 +1105,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                         allowFullScreen
                         referrerPolicy="no-referrer-when-downgrade"
                         src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${selectedItem.coordinates.lat},${selectedItem.coordinates.lng}&zoom=15&maptype=roadmap`}
+                        title="Konum haritası"
                       />
                     </div>
                   </div>
@@ -1194,7 +1275,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-xl z-40 p-4">
         <div className="flex items-center justify-between">
           <div>
-            {calculatedPrice ? (
+            {searchParams?.checkIn && searchParams?.checkOut && calculatedPrice ? (
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-[#0a2e23]">€{calculatedPrice.totalPrice}</span>
@@ -1203,8 +1284,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
               </div>
             ) : (
               <div>
-                <p className="text-lg font-bold text-[#0a2e23]">€{basePrice}</p>
-                <p className="text-xs text-gray-600">{t.perNight || 'gecelik'}</p>
+                <p className="text-sm font-medium text-gray-700">{t.selectDateForPrice || 'Fiyat için tarih seçin'}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{t.selectDatesSmall || 'Tarih seçiniz'}</p>
               </div>
             )}
           </div>
@@ -1223,6 +1304,8 @@ const DetailPage: React.FC<DetailPageProps> = ({
         </div>
       </div>
 
+      {/* MODALLER AYNI KALACAK - Sadece görsel alt text'leri güncellendi */}
+      
       {/* Mobil Share Menu - Bottom Sheet tarzı */}
       {showShareMenu && (
         <div className="md:hidden fixed inset-0 bg-black/50 z-50" onClick={() => setShowShareMenu(false)}>
@@ -1280,6 +1363,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
             <button
               onClick={() => setShowAllPhotos(false)}
               className="text-white hover:text-gray-300 p-2 rounded-full hover:bg-white/10 transition-all"
+              aria-label="Kapat"
             >
               <X size={20} />
             </button>
@@ -1309,7 +1393,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                           <img
                             key={index}
                             src={img.url}
-                            alt={`${selectedItem.title} - ${config.label} ${index + 1}`}
+                            alt={`${seoTitle} - ${config.label} ${index + 1}`}
                             className="w-full rounded-lg md:rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
                             loading="lazy"
                             onClick={() => setFullscreenImageIndex(globalIndex)}
@@ -1326,7 +1410,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                   <img
                     key={index}
                     src={img.url || img}
-                    alt={`${selectedItem.title} - ${index + 1}`}
+                    alt={`${seoTitle} - Fotoğraf ${index + 1}`}
                     className="w-full rounded-lg md:rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
                     loading="lazy"
                     onClick={() => setFullscreenImageIndex(index)}
@@ -1345,6 +1429,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
           <button
             onClick={() => setFullscreenImageIndex(null)}
             className="absolute top-4 right-4 z-10 text-white hover:text-gray-300 p-2 rounded-full hover:bg-white/10 transition-all"
+            aria-label="Kapat"
           >
             <X size={24} />
           </button>
@@ -1359,6 +1444,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
             <button
               onClick={() => setFullscreenImageIndex(prev => prev! - 1)}
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md rounded-full p-3 hover:bg-white/20 transition-all transform hover:scale-110 z-10"
+              aria-label="Önceki görsel"
             >
               <ChevronLeft size={28} className="text-white" />
             </button>
@@ -1369,6 +1455,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
             <button
               onClick={() => setFullscreenImageIndex(prev => prev! + 1)}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-md rounded-full p-3 hover:bg-white/20 transition-all transform hover:scale-110 z-10"
+              aria-label="Sonraki görsel"
             >
               <ChevronRight size={28} className="text-white" />
             </button>
@@ -1383,7 +1470,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
           >
             <img
               src={normalizedImages[fullscreenImageIndex]?.url || normalizedImages[fullscreenImageIndex]}
-              alt={`${selectedItem.title} - ${fullscreenImageIndex + 1}`}
+              alt={`${seoTitle} - Fotoğraf ${fullscreenImageIndex + 1}`}
               className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}
             />
@@ -1409,7 +1496,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                   >
                     <img
                       src={img.url || img}
-                      alt={`Thumbnail ${actualIndex + 1}`}
+                      alt={`Küçük görsel ${actualIndex + 1}`}
                       className="w-16 h-16 object-cover"
                     />
                   </button>
@@ -1427,6 +1514,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
                 className={`h-1.5 rounded-full transition-all ${
                   index === fullscreenImageIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/50'
                 }`}
+                aria-label={`Görsel ${index + 1}`}
               />
             ))}
           </div>
@@ -1444,6 +1532,7 @@ const DetailPage: React.FC<DetailPageProps> = ({
               <button
                 onClick={() => setShowAllAmenitiesModal(false)}
                 className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-white/50 transition-all"
+                aria-label="Kapat"
               >
                 <X size={20} />
               </button>

@@ -514,24 +514,21 @@ const DetailModal: React.FC<DetailModalProps> = ({
                         {calculatedPrice.nights} {t.nights}
                       </p>
                     </div>
-                  ) : (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{t.fromPrice}</p>
-                      <p className="text-xl font-bold text-[#0a2e23]">
-                        €{item.basePrice || item.price}
-                        <span className="text-xs font-normal text-gray-600">/{t.night}</span>
-                      </p>
-                    </div>
-                  )
+                  ) : null
                 ) : (
                   <div>
-                    <p className="text-sm font-medium text-gray-700">{t.fromPrice}</p>
-                    <p className="text-xl font-bold text-[#0a2e23]">
-                      €{item.basePrice || item.price}
-                      <span className="text-xs font-normal text-gray-600">
-                        /{isApartment ? t.night : t.person}
-                      </span>
+                    <p className="text-sm font-medium text-gray-700">
+                      {isApartment 
+                        ? (t.selectDateForPrice || 'Fiyat için tarih seçin')
+                        : (t.fromPrice || 'Başlangıç fiyatı')
+                      }
                     </p>
+                    {!isApartment && (
+                      <p className="text-xl font-bold text-[#0a2e23]">
+                        €{item.basePrice || item.price}
+                        <span className="text-xs font-normal text-gray-600">/{t.person}</span>
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
