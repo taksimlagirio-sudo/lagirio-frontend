@@ -167,14 +167,8 @@ const MobileApartmentCard: React.FC<ApartmentCardProps> = ({
   return (
     <div 
       onClick={() => {
-        // YENİ - Slug varsa slug URL'e git
-        if (apartment.slugs?.[currentLang]) {
-          const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
-          window.location.href = `${langPrefix}/apartment/${apartment.slugs[currentLang]}`;
-        } else {
-          // Fallback - eski modal sistemi
-          onOpenModal(apartment, "apartments");
-        }
+        // Mobilde her zaman modal aç
+        onOpenModal(apartment, "apartments");
       }}
       className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]"
     >

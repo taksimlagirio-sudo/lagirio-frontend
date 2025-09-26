@@ -718,43 +718,47 @@ const AppContent: React.FC = () => {
     useEffect(() => {
       const fetchApartmentBySlug = async () => {
         if (slug) {
-          setLocalLoading(true);
-          try {
-            // Her zaman API'den güncel veriyi al
-            const response = await apartmentAPI.getBySlug(slug, currentLang);
-            
-            const apt = {
-              ...response, // ← Direkt response (birinci versiyon formatı)
-              id: response._id || response.id,
-              _id: response._id || response.id,
-              reservations: response.reservations || []
-            };
-            
-            setSelectedItem(apt);
+          // Önce state'de slug ile arama yap
+          const apartment = apartments.find(apt => 
+            apt.slugs?.tr === slug ||
+            apt.slugs?.en === slug ||
+            apt.slugs?.ar === slug ||
+            apt.slugs?.ru === slug
+          );
+          
+          if (apartment) {
+            setSelectedItem(apartment);
             setSelectedItemType('apartments');
-            
-            // Apartments state'ini de güncelle (opsiyonel)
-            setApartments(prev => {
-              const index = prev.findIndex(a => a._id === apt._id);
-              if (index > -1) {
-                const updated = [...prev];
-                updated[index] = apt;
-                return updated;
+          } else {
+            // State'de yoksa API'den çek
+            setLocalLoading(true);
+            try {
+              const response = await apartmentAPI.getBySlug(slug, currentLang);
+              const apt = {
+                ...response,
+                id: response._id || response.id,
+                _id: response._id || response.id,
+                reservations: response.reservations || []
+              };
+              setSelectedItem(apt);
+              setSelectedItemType('apartments');
+              
+              // Eski URL'den gelindiyse redirect kontrolü
+              if (response.shouldRedirect && response.redirectUrl) {
+                navigateWithLang(response.redirectUrl);
               }
-              return prev;
-            });
-            
-          } catch (error) {
-            console.error('Apartment fetch error:', error);
-            setSelectedItem(null);
-          } finally {
-            setLocalLoading(false);
+            } catch (error) {
+              console.error('Apartment fetch error:', error);
+              setSelectedItem(null);
+            } finally {
+              setLocalLoading(false);
+            }
           }
         }
       };
       
       fetchApartmentBySlug();
-    }, [slug, currentLang]); // apartments dependency'yi kaldırdık
+    }, [slug, apartments, currentLang]);
 
     if (localLoading) {
       return <PageLoader />;
