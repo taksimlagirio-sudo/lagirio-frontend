@@ -166,10 +166,7 @@ const MobileApartmentCard: React.FC<ApartmentCardProps> = ({
 
   return (
     <div 
-      onClick={() => {
-        // Mobilde her zaman modal aç
-        onOpenModal(apartment, "apartments");
-      }}
+      onClick={() => onOpenModal(apartment, "apartments")}
       className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]"
     >
       {/* Görsel */}
@@ -417,14 +414,7 @@ const DesktopApartmentCard: React.FC<ApartmentCardProps> = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            // YENİ - Slug varsa direkt detay sayfasına git
-            if (apartment.slugs?.[currentLang]) {
-              const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
-              window.location.href = `${langPrefix}/apartment/${apartment.slugs[currentLang]}`;
-            } else {
-              // Fallback - eski modal sistemi
-              onOpenModal(apartment, "apartments");
-            }
+            onOpenModal(apartment, "apartments");
           }}
           className="w-full bg-[#1a4a3a] text-white py-4 rounded-2xl font-semibold hover:bg-[#0f3426] transition-colors flex items-center justify-center gap-2"
         >
