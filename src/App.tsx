@@ -718,46 +718,47 @@ const AppContent: React.FC = () => {
     useEffect(() => {
       const fetchApartmentBySlug = async () => {
         if (slug) {
-          setLocalLoading(true);
-          try {
-            const response = await apartmentAPI.getBySlug(slug, currentLang);
-            
-            // Redirect kontrolü
-            if (response.shouldRedirect && response.redirectUrl) {
-              console.log('🔄 Redirecting to:', response.redirectUrl);
-              
-              // 301 redirect simülasyonu
-              window.history.replaceState(null, '', response.redirectUrl);
-              
-              // Yeni URL'e git
-              if (response.redirectType === '301') {
-                window.location.replace(response.redirectUrl);
-              } else {
-                navigate(response.redirectUrl);
-              }
-              return;
-            }
-            
-            const apt = {
-              ...response.apartment,
-              id: response.apartment._id || response.apartment.id,
-              reservations: response.apartment.reservations || []
-            };
-            
-            setSelectedItem(apt);
+          // Önce state'de slug ile arama yap
+          const apartment = apartments.find(apt => 
+            apt.slugs?.tr === slug ||
+            apt.slugs?.en === slug ||
+            apt.slugs?.ar === slug ||
+            apt.slugs?.ru === slug
+          );
+          
+          if (apartment) {
+            setSelectedItem(apartment);
             setSelectedItemType('apartments');
-            
-          } catch (error) {
-            console.error('Apartment fetch error:', error);
-            setSelectedItem(null);
-          } finally {
-            setLocalLoading(false);
+          } else {
+            // State'de yoksa API'den çek
+            setLocalLoading(true);
+            try {
+              const response = await apartmentAPI.getBySlug(slug, currentLang);
+              const apt = {
+                ...response,
+                id: response._id || response.id,
+                _id: response._id || response.id,
+                reservations: response.reservations || []
+              };
+              setSelectedItem(apt);
+              setSelectedItemType('apartments');
+              
+              // Eski URL'den gelindiyse redirect kontrolü
+              if (response.shouldRedirect && response.redirectUrl) {
+                navigateWithLang(response.redirectUrl);
+              }
+            } catch (error) {
+              console.error('Apartment fetch error:', error);
+              setSelectedItem(null);
+            } finally {
+              setLocalLoading(false);
+            }
           }
         }
       };
       
       fetchApartmentBySlug();
-    }, [slug, currentLang]);
+    }, [slug, apartments, currentLang]);
 
     if (localLoading) {
       return <PageLoader />;
