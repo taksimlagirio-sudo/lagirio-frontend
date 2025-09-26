@@ -407,12 +407,6 @@ const AppContent: React.FC = () => {
   };
 
   const handleOpenModal = (item: any, type: string) => {
-    // YENİ - Apartments için slug kontrolü
-    if (type === 'apartments' && item.slugs?.[currentLang]) {
-      const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
-      navigate(`${langPrefix}/apartment/${item.slugs[currentLang]}`);
-      return;
-    }
     setSelectedItem(item);
     setSelectedItemType(type as 'apartments' | 'tours');
     setModalItem(item);
