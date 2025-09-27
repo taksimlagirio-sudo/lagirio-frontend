@@ -41,13 +41,6 @@ interface SEOHeadProps {
 }
 
 const SEOHead = ({ type, id, currentLang, customData }: SEOHeadProps) => {
-  console.log('📘 SEOHead Props:', {
-    type,
-    id,
-    currentLang,
-    hasCustomData: !!customData,
-    customDataKeys: customData ? Object.keys(customData) : []
-  });
   // Base URL
   const baseURL = 'https://lagirio.com';
   const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
@@ -215,228 +208,46 @@ const SEOHead = ({ type, id, currentLang, customData }: SEOHeadProps) => {
       <meta name="geo.position" content="41.0369;28.9850" />
       <meta name="ICBM" content="41.0369, 28.9850" />
       
-      {/* APARTMENT STRUCTURED DATA */}
-      {(() => {
-        const shouldRenderSchema = type === 'apartment' && customData;
-        console.log('📙 Schema Check:', {
-          type,
-          customData: !!customData,
-          shouldRender: shouldRenderSchema
-        });
-        
-        if (!shouldRenderSchema) {
-          console.log('❌ Schema NOT rendering because:', {
-            typeNotApartment: type !== 'apartment',
-            noCustomData: !customData
-          });
-          return null;
-        }
-        
-        console.log('✅ Rendering Apartment Schemas!');
-        return (
-          <>
-            {/* 1. LodgingBusiness Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "LodgingBusiness",
-                "@id": customData.url,
-                "name": customData.title,
-                "description": customData.description,
-                "url": customData.url,
-                
-                // All images
-                "image": customData.images?.map((img: any, index: number) => ({
-                  "@type": "ImageObject",
-                  "url": img.url || img,
-                  "caption": `${customData.title} - Photo ${index + 1}`,
-                  "name": customData.title,
-                  "width": "1920",
-                  "height": "1080"
-                })) || [customData.image],
-                
-                // Pricing
-                "priceRange": `€${customData.minPrice || customData.price}-€${customData.maxPrice || Math.round((customData.price || 100) * 1.5)}`,
-                "currenciesAccepted": "EUR,USD,TRY",
-                "paymentAccepted": "Cash, Credit Card, Bank Transfer",
-                
-                // Location
-                "address": {
-                  "@type": "PostalAddress",
-                  "streetAddress": "Tarlabası Bulvarı No:116",
-                  "addressLocality": customData.neighborhood || "Beyoğlu",
-                  "addressRegion": customData.district || "İstanbul",
-                  "postalCode": "34435",
-                  "addressCountry": "TR"
-                },
-                "geo": customData.coordinates ? {
-                  "@type": "GeoCoordinates",
-                  "latitude": customData.coordinates.lat,
-                  "longitude": customData.coordinates.lng
-                } : {
-                  "@type": "GeoCoordinates",
-                  "latitude": 41.0369,
-                  "longitude": 28.9850
-                },
-                
-                // Contact
-                "telephone": "+905355117018",
-                "email": "info@lagirio.com",
-                
-                // Check-in/out
-                "checkinTime": customData.checkInTime || "14:00",
-                "checkoutTime": customData.checkOutTime || "11:00",
-                
-                // Languages
-                "availableLanguage": ["Turkish", "English", "Arabic", "Russian"],
-                
-                // Amenities
-                "amenityFeature": customData.amenities?.map((amenity: string) => ({
-                  "@type": "LocationFeatureSpecification",
-                  "name": amenity,
-                  "value": true
-                })),
-                
-                // Room details
-                "numberOfRooms": customData.bedrooms || 1,
-                "numberOfBathroomsTotal": customData.bathrooms || 1,
-                "floorSize": {
-                  "@type": "QuantitativeValue",
-                  "value": customData.size || 50,
-                  "unitCode": "MTK" // Square meters
-                },
-                "occupancy": {
-                  "@type": "QuantitativeValue",
-                  "minValue": 1,
-                  "maxValue": customData.maxCapacity || 4
-                }
-              })}
-            </script>
-            
-            {/* 2. Product Schema (for reservations) */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "Product",
-                "name": customData.title,
-                "description": customData.description,
-                "image": customData.images?.[0]?.url || customData.image,
-                "brand": {
-                  "@type": "Organization",
-                  "name": "Lagirio Residence"
-                },
-                "offers": {
-                  "@type": "AggregateOffer",
-                  "priceCurrency": "EUR",
-                  "lowPrice": customData.minPrice || customData.price,
-                  "highPrice": customData.maxPrice || Math.round((customData.price || 100) * 1.5),
-                  "offerCount": "10",
-                  "availability": customData.availability?.available ? 
-                    "https://schema.org/InStock" : 
-                    "https://schema.org/LimitedAvailability",
-                  "validFrom": new Date().toISOString(),
-                  "validThrough": new Date(Date.now() + 365*24*60*60*1000).toISOString(),
-                  "priceValidUntil": new Date(Date.now() + 30*24*60*60*1000).toISOString(),
-                  "seller": {
-                    "@type": "Organization",
-                    "name": "Lagirio Residence",
-                    "url": baseURL,
-                    "telephone": "+905355117018",
-                    "email": "info@lagirio.com"
-                  },
-                  ...(customData.hasDiscount && {
-                    "discount": {
-                      "@type": "Offer",
-                      "price": customData.price,
-                      "priceCurrency": "EUR",
-                      "discountCode": "SPECIAL",
-                      "discountValue": customData.discountAmount
-                    }
-                  })
-                },
-                "review": [{
-                  "@type": "Review",
-                  "reviewRating": {
-                    "@type": "Rating",
-                    "ratingValue": "5",
-                    "bestRating": "5"
-                  },
-                  "author": {
-                    "@type": "Person",
-                    "name": "Ahmet Y."
-                  },
-                  "datePublished": "2024-10-15",
-                  "reviewBody": "Harika konum ve temiz daire. Kesinlikle tavsiye ederim."
-                }]
-              })}
-            </script>
-            
-            {/* 3. BreadcrumbList */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "BreadcrumbList",
-                "itemListElement": [
-                  {
-                    "@type": "ListItem",
-                    "position": 1,
-                    "name": "Ana Sayfa",
-                    "item": baseURL
-                  },
-                  {
-                    "@type": "ListItem", 
-                    "position": 2,
-                    "name": "Kiralık Daireler",
-                    "item": `${baseURL}${langPrefix}/rentals`
-                  },
-                  {
-                    "@type": "ListItem",
-                    "position": 3,
-                    "name": customData.title,
-                    "item": customData.url
-                  }
-                ]
-              })}
-            </script>
-            
-            {/* 4. FAQPage Schema */}
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": [
-                  {
-                    "@type": "Question",
-                    "name": "Check-in ve check-out saatleri nedir?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": `Check-in: ${customData.checkInTime || '14:00'} sonrası, Check-out: ${customData.checkOutTime || '11:00'} öncesi`
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "Daire kaç kişi konaklayabilir?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": `Dairemiz maksimum ${customData.maxCapacity || 4} kişi konaklayabilir.`
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "Evcil hayvan kabul ediyor musunuz?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Maalesef evcil hayvan kabul etmiyoruz."
-                    }
-                  }
-                ]
-              })}
-            </script>
-          </>
-        );
-      })()}
+      {/* 
+        ⚠️ SCHEMAS REMOVED - Now handled by SEOSchemaManager
+        All structured data (JSON-LD) is now injected directly to DOM
+        by SEOSchemaManager for better SEO compatibility
+      */}
       
-      {/* TOUR STRUCTURED DATA */}
+      {/* ONLY keep Organization schema for non-apartment pages */}
+      {type !== 'apartment' && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Lagirio Residence",
+            "url": baseURL,
+            "logo": `${baseURL}/logo.png`,
+            "description": "Taksim 360'ta lüks kiralık daireler ve profesyonel İstanbul turları",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Tarlabası Bulvarı No:116",
+              "addressLocality": "Beyoğlu",
+              "addressRegion": "İstanbul",
+              "postalCode": "34435",
+              "addressCountry": "TR"
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+905355117018",
+              "contactType": "reservations",
+              "availableLanguage": ["Turkish", "English", "Arabic", "Russian"]
+            },
+            "sameAs": [
+              "https://www.facebook.com/lagirio",
+              "https://www.instagram.com/lagirio",
+              "https://www.twitter.com/lagirio"
+            ]
+          })}
+        </script>
+      )}
+      
+      {/* Tour schema remains here since SchemaManager only handles apartments */}
       {type === 'tour' && customData && (
         <script type="application/ld+json">
           {JSON.stringify({
@@ -460,37 +271,6 @@ const SEOHead = ({ type, id, currentLang, customData }: SEOHeadProps) => {
           })}
         </script>
       )}
-      
-      {/* ORGANIZATION SCHEMA - for all pages */}
-      <script type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          "name": "Lagirio Residence",
-          "url": baseURL,
-          "logo": `${baseURL}/logo.png`,
-          "description": "Taksim 360'ta lüks kiralık daireler ve profesyonel İstanbul turları",
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "Tarlabası Bulvarı No:116",
-            "addressLocality": "Beyoğlu",
-            "addressRegion": "İstanbul",
-            "postalCode": "34435",
-            "addressCountry": "TR"
-          },
-          "contactPoint": {
-            "@type": "ContactPoint",
-            "telephone": "+905355117018",
-            "contactType": "reservations",
-            "availableLanguage": ["Turkish", "English", "Arabic", "Russian"]
-          },
-          "sameAs": [
-            "https://www.facebook.com/lagirio",
-            "https://www.instagram.com/lagirio",
-            "https://www.twitter.com/lagirio"
-          ]
-        })}
-      </script>
     </Helmet>
   );
 };

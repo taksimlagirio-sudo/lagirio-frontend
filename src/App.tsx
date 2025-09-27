@@ -10,6 +10,8 @@ import ForgotPasswordModal from './components/modals/ForgotPasswordModal';
 import WhatsAppRedirectModal from './components/modals/WhatsAppRedirectModal';
 import { HelmetProvider } from 'react-helmet-async';
 import SEOHead from './components/SEOHead';
+import { SEOSchemaManager } from './utils/seoSchemaManager';
+
 
 // Lazy loaded pages
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -319,9 +321,7 @@ const AppContent: React.FC = () => {
       
       let data;
       
-      if (checkIn && checkOut) {
-        console.log('Gönderilen parametreler:', { checkIn, checkOut, adults, children, childrenAgeGroups });
-        
+      if (checkIn && checkOut) {        
         data = await apartmentAPI.getAvailable({
           checkIn,
           checkOut,
@@ -330,7 +330,6 @@ const AppContent: React.FC = () => {
           childrenAges: childrenAgeGroups || globalSearchParams.childrenAgeGroups
         });
         
-        console.log('Backend response:', data);
       } else {
         data = await apartmentAPI.getAll();
       }
@@ -348,7 +347,6 @@ const AppContent: React.FC = () => {
       }, 300);
       
     } catch (error) {
-      console.error('Daireler yüklenemedi:', error);
       addToast('Daireler yüklenemedi', 'error');
       setIsGlobalSearching(false);
     }
@@ -363,7 +361,6 @@ const AppContent: React.FC = () => {
       }));
       setTours(toursWithId);
     } catch (error) {
-      console.error('Turlar yüklenemedi:', error);
       addToast('Turlar yüklenemedi', 'error');
     }
   };
@@ -705,6 +702,7 @@ const AppContent: React.FC = () => {
   }, []);
 
   // YENİ - Apartment Slug Detail Wrapper
+  // ApartmentSlugWrapper component'ini güncelleyin
   const ApartmentSlugWrapper = () => {
     const { slug } = useParams();
     const [localLoading, setLocalLoading] = useState(false);
@@ -752,7 +750,23 @@ const AppContent: React.FC = () => {
       };
       
       fetchApartmentBySlug();
-    }, [slug, apartments, currentLang]);
+    }, [slug]); // apartments ve currentLang'i dependency'den çıkardık
+
+    // Schema injection için tek useEffect
+    useEffect(() => {
+      if (selectedItem && selectedItemType === 'apartments') {
+        console.log('[App.tsx] Injecting schemas for apartment:', selectedItem.title);
+        
+        // Schema'ları enjekte et
+        SEOSchemaManager.injectApartmentSchema(selectedItem, currentLang);
+        
+        // Cleanup function - component unmount olduğunda
+        return () => {
+          console.log('[App.tsx] Cleaning up schemas');
+          SEOSchemaManager.removeAllSchemas();
+        };
+      }
+    }, [selectedItem?._id, currentLang]); // Sadece ID ve dil değiştiğinde çalışsın
 
     if (localLoading) {
       return <PageLoader />;
@@ -777,10 +791,8 @@ const AppContent: React.FC = () => {
     }
 
     if (selectedItem) {
-      console.log('✅ Rendering DetailPage with:', selectedItem);
       return (
         <>
-          {/* SEOHead'i DetailPage'den ÖNCE ekle */}
           <SEOHead 
             type="apartment" 
             currentLang={currentLang}
@@ -791,6 +803,7 @@ const AppContent: React.FC = () => {
               images: selectedItem.images,
               url: `https://lagirio.com${currentLang === 'tr' ? '' : `/${currentLang}`}/apartment/${slug}`,
               price: selectedItem.basePrice || selectedItem.price,
+              pricePerNight: selectedItem.basePrice || 100,
               minPrice: selectedItem.basePrice,
               maxPrice: Math.round((selectedItem.basePrice || 100) * 1.5),
               bedrooms: selectedItem.rooms,
@@ -825,7 +838,7 @@ const AppContent: React.FC = () => {
   };
 
   // Mevcut DetailPageWrapper (eski ID bazlı)
-  // DetailPageWrapper component'inde güncelleme
+  // DetailPageWrapper component'i de güncelle (eski ID bazlı sayfa için)
   const DetailPageWrapper = () => {
     const { type, id } = useParams();
     const [localLoading, setLocalLoading] = useState(false);
@@ -842,13 +855,12 @@ const AppContent: React.FC = () => {
             setSelectedItem(apartment);
             setSelectedItemType('apartments');
             
-            // YENİ - Slug varsa yeni URL'e 301 redirect
+            // Slug varsa yeni URL'e 301 redirect
             if (apartment.slugs?.[currentLang]) {
               const newUrl = currentLang === 'tr' 
                 ? `/apartment/${apartment.slugs[currentLang]}`
                 : `/${currentLang}/apartment/${apartment.slugs[currentLang]}`;
               
-              // Browser'da replace ile yönlendir (geri butonu sorunlarını önler)
               window.history.replaceState(null, '', newUrl);
               navigateWithLang(`/apartment/${apartment.slugs[currentLang]}`);
               return;
@@ -906,7 +918,21 @@ const AppContent: React.FC = () => {
           }
         }
       }
-    }, [type, id, apartments.length, tours.length, currentLang]);
+    }, [type, id]); // apartments.length ve tours.length'i çıkardık
+
+    // Schema injection için basitleştirilmiş useEffect
+    useEffect(() => {
+      if (selectedItem && selectedItemType === 'apartments') {
+        console.log('[DetailPageWrapper] Injecting schemas for apartment');
+        
+        SEOSchemaManager.injectApartmentSchema(selectedItem, currentLang);
+        
+        return () => {
+          console.log('[DetailPageWrapper] Cleaning up schemas');
+          SEOSchemaManager.removeAllSchemas();
+        };
+      }
+    }, [selectedItem?._id, currentLang]);
 
     if (localLoading) {
       return <PageLoader />;
