@@ -16,7 +16,6 @@ import { useAuth } from '../components/contexts/AuthContext';
 import { favoritesAPI } from '../utils/api';
 import { translateAmenity } from '../utils/amenityTranslations';
 import { getRuleIconComponent, getSafetyIconComponent, translateRule, translateSafety } from '../utils/rulesTranslations';
-import SEOHead from '../components/SEOHead'; // SEOHead import ekledik
 
 interface DetailPageProps {
   selectedItem: any;
@@ -336,75 +335,9 @@ const DetailPage: React.FC<DetailPageProps> = ({
                         selectedItem.translations?.tr?.description || 
                         selectedItem.description;
 
- console.log('🔴 DetailPage DEBUG:', {
-  selectedItemType,
-  isApartment,
-  apartmentId,
-  hasSelectedItem: !!selectedItem,
-  seoTitle,
-  selectedItem
-});
-                        
-
   return (
     <div className="min-h-screen bg-[#f5f0e8] overflow-x-hidden">
-      {/* SEOHead COMPONENT - EN ÜSTTE */}
-      <SEOHead 
-        type={isApartment ? "apartment" : "tour"}
-        id={apartmentId}
-        currentLang={currentLang}
-        customData={{
-          title: seoTitle,
-          description: seoDescription,
-          
-          // TÜM GÖRSELLERİ GÖNDER
-          images: normalizedImages,
-          image: normalizedImages[0]?.url || normalizedImages[0],
-          
-          // URL - SLUG KULLANIYOR
-          url: `https://lagirio.com${currentLang === 'tr' ? '' : `/${currentLang}`}/apartment/${selectedItem?.slugs?.[currentLang] || apartmentId}`,
-          
-          // FİYAT BİLGİLERİ
-          price: calculatedPrice?.totalPrice || basePrice,
-          minPrice: basePrice,
-          maxPrice: Math.round(basePrice * 1.5),
-          pricePerNight: calculatedPrice?.pricePerNight || basePrice,
-          
-          // APARTMAN ÖZELLİKLERİ
-          bedrooms: selectedItem?.bedrooms || selectedItem?.rooms,
-          bathrooms: selectedItem?.bathrooms,
-          size: selectedItem?.area || selectedItem?.size,
-          maxCapacity: selectedItem?.maxCapacity || selectedItem?.capacity,
-          
-          // OLANAKLAR
-          amenities: selectedItem?.amenities,
-          
-          // KOORDİNATLAR
-          coordinates: selectedItem?.coordinates,
-          
-          // ADRES
-          neighborhood: selectedItem?.neighborhood,
-          district: selectedItem?.district,
-          city: selectedItem?.city || "İstanbul",
-          
-          // CHECK-IN/OUT
-          checkInTime: selectedItem?.checkInTime || "14:00",
-          checkOutTime: selectedItem?.checkOutTime || "11:00",
-          
-          // MÜSAİTLİK
-          availability: searchParams?.checkIn && searchParams?.checkOut ? {
-            checkIn: searchParams.checkIn,
-            checkOut: searchParams.checkOut,
-            nights: calculatedPrice?.nights,
-            available: true
-          } : undefined,
-          
-          // İNDİRİM BİLGİSİ
-          hasDiscount: calculatedPrice?.hasDiscount,
-          originalPrice: calculatedPrice?.totalOriginalPrice,
-          discountAmount: calculatedPrice?.totalDiscountAmount
-        }}
-      />
+
 
       {/* Hero Section - Mobilde daha küçük */}
       <div className="relative h-[60vh] md:min-h-screen overflow-hidden">
