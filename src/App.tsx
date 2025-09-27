@@ -708,6 +708,14 @@ const AppContent: React.FC = () => {
   const ApartmentSlugWrapper = () => {
     const { slug } = useParams();
     const [localLoading, setLocalLoading] = useState(false);
+
+    // DEBUG EKLE
+    console.log('🔴 ApartmentSlugWrapper:', { 
+      slug, 
+      selectedItem: !!selectedItem,
+      selectedItemType,
+      apartments: apartments.length 
+    });
     
     useEffect(() => {
       const fetchApartmentBySlug = async () => {
@@ -719,6 +727,9 @@ const AppContent: React.FC = () => {
             apt.slugs?.ar === slug ||
             apt.slugs?.ru === slug
           );
+
+          console.log('🟡 Found in state:', !!apartment); // DEBUG
+
           
           if (apartment) {
             setSelectedItem(apartment);
@@ -755,10 +766,13 @@ const AppContent: React.FC = () => {
     }, [slug, apartments, currentLang]);
 
     if (localLoading) {
+      console.log('⏳ Loading...');
       return <PageLoader />;
     }
 
     if (!selectedItem && !localLoading) {
+      console.log('✅ Rendering DetailPage with:', selectedItem); // DEBUG
+
       return (
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="text-center">
