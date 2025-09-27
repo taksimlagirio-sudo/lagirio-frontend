@@ -336,6 +336,17 @@ const DetailPage: React.FC<DetailPageProps> = ({
                         selectedItem.translations?.tr?.description || 
                         selectedItem.description;
 
+                        // Debug için ekleyin
+useEffect(() => {
+  console.log('DetailPage Debug:', {
+    selectedItemType,
+    isApartment,
+    apartmentId,
+    hasSelectedItem: !!selectedItem,
+    hasCustomData: !!(seoTitle && seoDescription)
+  });
+}, [selectedItemType, isApartment, apartmentId]);
+
   return (
     <div className="min-h-screen bg-[#f5f0e8] overflow-x-hidden">
       {/* SEOHead COMPONENT - EN ÜSTTE */}
