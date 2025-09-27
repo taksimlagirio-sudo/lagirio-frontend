@@ -708,14 +708,6 @@ const AppContent: React.FC = () => {
   const ApartmentSlugWrapper = () => {
     const { slug } = useParams();
     const [localLoading, setLocalLoading] = useState(false);
-
-    // DEBUG EKLE
-    console.log('🔴 ApartmentSlugWrapper:', { 
-      slug, 
-      selectedItem: !!selectedItem,
-      selectedItemType,
-      apartments: apartments.length 
-    });
     
     useEffect(() => {
       const fetchApartmentBySlug = async () => {
@@ -727,9 +719,6 @@ const AppContent: React.FC = () => {
             apt.slugs?.ar === slug ||
             apt.slugs?.ru === slug
           );
-
-          console.log('🟡 Found in state:', !!apartment); // DEBUG
-
           
           if (apartment) {
             setSelectedItem(apartment);
@@ -766,7 +755,6 @@ const AppContent: React.FC = () => {
     }, [slug, apartments, currentLang]);
 
     if (localLoading) {
-      console.log('⏳ Loading...');
       return <PageLoader />;
     }
 
@@ -789,18 +777,47 @@ const AppContent: React.FC = () => {
     }
 
     if (selectedItem) {
-      console.log('✅ Rendering DetailPage with:', selectedItem); // ✅ DOĞRU YER
+      console.log('✅ Rendering DetailPage with:', selectedItem);
       return (
-        <DetailPage
-          selectedItem={selectedItem}
-          selectedItemType="apartments"
-          currentLang={currentLang}
-          setCurrentLang={changeLanguage}
-          translations={translations}
-          setShowLoginModal={() => openModal('login')}
-          setCurrentView={setCurrentView}
-          searchParams={globalSearchParams} 
-        />
+        <>
+          {/* SEOHead'i DetailPage'den ÖNCE ekle */}
+          <SEOHead 
+            type="apartment" 
+            currentLang={currentLang}
+            customData={{
+              title: selectedItem.translations?.[currentLang]?.title || selectedItem.title,
+              description: selectedItem.translations?.[currentLang]?.description || selectedItem.description,
+              image: selectedItem.images?.[0]?.url || selectedItem.images?.[0],
+              images: selectedItem.images,
+              url: `https://lagirio.com${currentLang === 'tr' ? '' : `/${currentLang}`}/apartment/${slug}`,
+              price: selectedItem.basePrice || selectedItem.price,
+              minPrice: selectedItem.basePrice,
+              maxPrice: Math.round((selectedItem.basePrice || 100) * 1.5),
+              bedrooms: selectedItem.rooms,
+              bathrooms: selectedItem.bathrooms,
+              size: selectedItem.size,
+              maxCapacity: selectedItem.maxCapacity,
+              amenities: selectedItem.amenities,
+              coordinates: selectedItem.coordinates,
+              neighborhood: selectedItem.neighborhood,
+              district: selectedItem.district,
+              city: selectedItem.city || "İstanbul",
+              checkInTime: selectedItem.checkInTime,
+              checkOutTime: selectedItem.checkOutTime
+            }}
+          />
+          
+          <DetailPage
+            selectedItem={selectedItem}
+            selectedItemType="apartments"
+            currentLang={currentLang}
+            setCurrentLang={changeLanguage}
+            translations={translations}
+            setShowLoginModal={() => openModal('login')}
+            setCurrentView={setCurrentView}
+            searchParams={globalSearchParams} 
+          />
+        </>
       );
     }
 
@@ -947,10 +964,8 @@ const AppContent: React.FC = () => {
         } />
         
         {/* YENİ - Apartment Slug Route */}
-        <Route path="apartment/:slug" element={
+        <Route path="/apartment/:slug" element={
           <>
-            {console.log('🟢 Apartment route matched!')}
-            <SEOHead type="apartment" currentLang={currentLang} />
             <ApartmentSlugWrapper />
           </>
         } />
