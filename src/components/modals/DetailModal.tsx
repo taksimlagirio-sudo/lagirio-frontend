@@ -127,6 +127,13 @@ const DetailModal: React.FC<DetailModalProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Modal açıldığında veya item değiştiğinde fotoğraf index'ini sıfırla
+  useEffect(() => {
+    if (isOpen) {
+      setModalImageIndex(0);
+    }
+  }, [isOpen, item?.id, item?._id]);
+
   // Prevent body scroll when modal open - ESKİ HALİ GİBİ
   useEffect(() => {
     if (isOpen) {
