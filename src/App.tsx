@@ -771,8 +771,6 @@ const AppContent: React.FC = () => {
     }
 
     if (!selectedItem && !localLoading) {
-      console.log('✅ Rendering DetailPage with:', selectedItem); // DEBUG
-
       return (
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="text-center">
@@ -791,6 +789,7 @@ const AppContent: React.FC = () => {
     }
 
     if (selectedItem) {
+      console.log('✅ Rendering DetailPage with:', selectedItem); // ✅ DOĞRU YER
       return (
         <DetailPage
           selectedItem={selectedItem}
@@ -948,8 +947,9 @@ const AppContent: React.FC = () => {
         } />
         
         {/* YENİ - Apartment Slug Route */}
-        <Route path="/apartment/:slug" element={
+        <Route path="apartment/:slug" element={
           <>
+            {console.log('🟢 Apartment route matched!')}
             <SEOHead type="apartment" currentLang={currentLang} />
             <ApartmentSlugWrapper />
           </>
