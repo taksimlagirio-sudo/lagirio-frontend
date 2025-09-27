@@ -26,12 +26,12 @@ interface Item {
     ru?: { title?: string; description?: string };
     [key: string]: { title?: string; description?: string } | undefined;
   };
-  slugs?: {  // ← BU SATIRI EKLE
+  slugs?: {
     tr: string;
     en: string;
     ar: string;
     ru: string;
-    [key: string]: string;  // ← Dynamic key support
+    [key: string]: string;
   };
   images: ItemImage[] | string[];
   internalCode?: string;
@@ -46,8 +46,8 @@ interface Item {
   rooms?: number;
   bathrooms?: number;
   size?: number;
-  area?: number;  // ← area da ekleyelim
-  bedrooms?: number;  // ← bedrooms da ekleyelim
+  area?: number;
+  bedrooms?: number;
   amenities?: string[];
   duration?: string;
   maxPeople?: number;
@@ -106,6 +106,8 @@ const DetailModal: React.FC<DetailModalProps> = ({
   const [loadingPrice, setLoadingPrice] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   
   // Mobile swipe controls
   const [isDragging, setIsDragging] = useState(false);
@@ -131,19 +133,50 @@ const DetailModal: React.FC<DetailModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setModalImageIndex(0);
+      setLoadedImages(new Set());
+      setImageLoading(false);
     }
   }, [isOpen, item?.id, item?._id]);
 
-  // Prevent body scroll when modal open - ESKİ HALİ GİBİ
+  // Fotoğraf değiştiğinde loading durumunu yönet
+  useEffect(() => {
+    if (!loadedImages.has(modalImageIndex)) {
+      setImageLoading(true);
+    } else {
+      setImageLoading(false);
+    }
+  }, [modalImageIndex, loadedImages]);
+
+  // Prevent body scroll when modal open
+  // Prevent body scroll when modal open - GÜNCELLENEN VERSİYON
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      // Mevcut scroll pozisyonunu kaydet
+      const scrollY = window.scrollY;
+      const body = document.body;
+      
+      // Body'yi sabitle ve scroll pozisyonunu koru
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+      
+      // Cleanup fonksiyonunda scroll pozisyonunu geri yükle
+      return () => {
+        const scrollY = parseInt(body.style.top || '0') * -1;
+        body.style.position = '';
+        body.style.top = '';
+        body.style.width = '';
+        body.style.overflow = '';
+        window.scrollTo(0, scrollY);
+      };
     } else {
-      document.body.style.overflow = 'unset';
+      // Modal kapalıysa stilleri temizle
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [isOpen]);
 
   // Price calculation
@@ -210,9 +243,8 @@ const DetailModal: React.FC<DetailModalProps> = ({
     }
   };
 
-  // Touch handlers - GENIŞLETILMIŞ SWIPE ALANI İÇİN
+  // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Eğer tıklanan element bir buton, link veya interaktif element ise swipe başlatma
     const target = e.target as HTMLElement;
     const isInteractive = target.closest('button, a, img') || 
                           target.tagName === 'BUTTON' || 
@@ -220,7 +252,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
                           target.tagName === 'IMG';
     
     if (isInteractive) {
-      return; // İnteraktif elementlerde swipe başlatma
+      return;
     }
     
     const touch = e.touches[0];
@@ -239,7 +271,6 @@ const DetailModal: React.FC<DetailModalProps> = ({
     const touch = e.touches[0];
     const deltaY = touch.clientY - startY;
     
-    // Sadece aşağı kaydırma
     if (deltaY > 0 && modalRef.current) {
       modalRef.current.style.transform = `translateY(${deltaY}px)`;
     }
@@ -294,9 +325,9 @@ const DetailModal: React.FC<DetailModalProps> = ({
             transition: 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
           }}
         >
-          {/* Swipe Handle ve Başlık Alanı - GENIŞLETILMIŞ SWIPE */}
+          {/* Swipe Handle ve Başlık Alanı */}
           <div>
-            {/* Swipe Alanı - Handle + Başlık */}
+            {/* Swipe Alanı */}
             <div 
               className="cursor-grab active:cursor-grabbing"
               onTouchStart={handleTouchStart}
@@ -308,7 +339,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
                 <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto" />
               </div>
 
-              {/* Başlık ve Konum - SWIPE ALANI İÇİNDE */}
+              {/* Başlık ve Konum */}
               <div className="px-4 pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 mr-2">
@@ -325,67 +356,87 @@ const DetailModal: React.FC<DetailModalProps> = ({
                     </div>
                   </div>
                   
-                  {/* Butonlar - Touch auto ile korunmuş */}
+                  {/* Butonlar */}
                   <div className="flex items-center gap-1.5 touch-auto">
-                <button
-                  onClick={handleToggleFavorite}
-                  disabled={favoriteLoading}
-                  className="p-2 rounded-full bg-gray-50"
-                >
-                  {favoriteLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
-                  ) : (
-                    <Heart
-                      size={18}
-                      className={`${
-                        isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
-                      }`}
-                    />
-                  )}
-                </button>
-                <button className="p-2 rounded-full bg-gray-50">
-                  <Share2 size={18} className="text-gray-600" />
-                </button>
+                    <button
+                      onClick={handleToggleFavorite}
+                      disabled={favoriteLoading}
+                      className="p-2 rounded-full bg-gray-50"
+                    >
+                      {favoriteLoading ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                      ) : (
+                        <Heart
+                          size={18}
+                          className={`${
+                            isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
+                          }`}
+                        />
+                      )}
+                    </button>
+                    <button className="p-2 rounded-full bg-gray-50">
+                      <Share2 size={18} className="text-gray-600" />
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Horizontal Image Gallery - SWIPE ALANI DIŞINDA */}
+            {/* Horizontal Image Gallery */}
             <div className="px-4 pb-3">
               <div className="relative">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4">
-                {item.images.map((img: ItemImage | string, index: number) => (
-                  <div
-                    key={index}
-                    className="relative flex-shrink-0"
-                    onClick={() => setModalImageIndex(index)}
-                  >
-                    <img
-                      src={typeof img === 'string' ? img : img?.url || '/placeholder.jpg'}
-                      alt={`${title} ${index + 1}`}
-                      loading="lazy" 
-                      className={`w-40 h-28 object-cover rounded-xl ${
-                        index === modalImageIndex ? 'ring-2 ring-[#0a2e23]' : ''
-                      }`}
-                    />
-                    {index === 0 && (
-                      <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                        <Camera size={12} />
-                        <span>{item.images.length}</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              {/* View All Photos Button */}
-              <button
-                onClick={() => onDetailNavigation(false)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
-              >
-                <Maximize2 size={16} className="text-gray-700" />
-              </button>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4">
+                  {item.images.map((img: ItemImage | string, index: number) => (
+                    <div
+                      key={index}
+                      className="relative flex-shrink-0"
+                      onClick={() => setModalImageIndex(index)}
+                    >
+                      {/* Loading state for each thumbnail */}
+                      {modalImageIndex === index && imageLoading && (
+                        <div className="absolute inset-0 bg-gray-200 rounded-xl flex items-center justify-center z-10">
+                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-gray-400 border-t-[#0a2e23]"></div>
+                        </div>
+                      )}
+                      
+                      <img
+                        src={typeof img === 'string' ? img : img?.url || '/placeholder.jpg'}
+                        alt={`${title} ${index + 1}`}
+                        loading="lazy"
+                        onLoad={() => {
+                          if (index === modalImageIndex) {
+                            setLoadedImages(prev => new Set(prev).add(index));
+                            setImageLoading(false);
+                          }
+                        }}
+                        onError={() => {
+                          if (index === modalImageIndex) {
+                            setImageLoading(false);
+                          }
+                        }}
+                        className={`w-40 h-28 object-cover rounded-xl transition-all ${
+                          index === modalImageIndex 
+                            ? `ring-2 ring-[#0a2e23] ${imageLoading ? 'opacity-50' : 'opacity-100'}`
+                            : ''
+                        }`}
+                      />
+                      {index === 0 && !imageLoading && (
+                        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                          <Camera size={12} />
+                          <span>{item.images.length}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* View All Photos Button */}
+                <button
+                  onClick={() => onDetailNavigation(false)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg"
+                >
+                  <Maximize2 size={16} className="text-gray-700" />
+                </button>
               </div>
             </div>
           </div>
@@ -543,12 +594,10 @@ const DetailModal: React.FC<DetailModalProps> = ({
               {/* Book Now Button */}
               <button
                 onClick={() => {
-                  // YENİ - Slug varsa direkt URL'e git
                   if (isApartment && item?.slugs?.[currentLang]) {
                     const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
                     window.location.href = `${langPrefix}/apartment/${item.slugs[currentLang]}`;
                   } else {
-                    // Eski sistem
                     onDetailNavigation(true);
                   }
                 }}
@@ -564,7 +613,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
     );
   }
 
-  // DESKTOP LAYOUT (Değişmemiş)
+  // DESKTOP LAYOUT
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-4xl h-[80vh] overflow-hidden shadow-2xl">
@@ -605,35 +654,50 @@ const DetailModal: React.FC<DetailModalProps> = ({
         <div className="flex h-full">
           {/* Sol - Büyük Görsel */}
           <div className="w-3/5 relative bg-gray-100">
+            {/* Loading Overlay */}
+            {imageLoading && (
+              <div className="absolute inset-0 bg-gray-100 z-10 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-[#0a2e23]"></div>
+                  <p className="text-gray-600 mt-2 text-sm">{t.loadingImage || 'Yükleniyor...'}</p>
+                </div>
+              </div>
+            )}
+            
             <img
               src={typeof item.images[modalImageIndex] === 'string' 
                 ? item.images[modalImageIndex] 
                 : (item.images[modalImageIndex] as ItemImage)?.url || '/placeholder.jpg'}
               alt={title}
-              loading="lazy" 
-              className="w-full h-full object-cover"
+              onLoad={() => {
+                setLoadedImages(prev => new Set(prev).add(modalImageIndex));
+                setImageLoading(false);
+              }}
+              onError={() => {
+                setImageLoading(false);
+              }}
+              className={`w-full h-full object-cover transition-opacity duration-300 ${
+                imageLoading ? 'opacity-0' : 'opacity-100'
+              }`}
             />
 
-            {/* Görsel Navigasyon */}
-            {item.images.length > 1 && (
+            {/* Görsel Navigasyon - sadece yükleme bittiyse göster */}
+            {!imageLoading && item.images.length > 1 && (
               <>
                 <button
-                  onClick={() =>
-                    setModalImageIndex(
-                      (prev) =>
-                        (prev - 1 + item.images.length) % item.images.length
-                    )
-                  }
+                  onClick={() => {
+                    const newIndex = (modalImageIndex - 1 + item.images.length) % item.images.length;
+                    setModalImageIndex(newIndex);
+                  }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-all shadow-lg"
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button
-                  onClick={() =>
-                    setModalImageIndex(
-                      (prev) => (prev + 1) % item.images.length
-                    )
-                  }
+                  onClick={() => {
+                    const newIndex = (modalImageIndex + 1) % item.images.length;
+                    setModalImageIndex(newIndex);
+                  }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-all shadow-lg"
                 >
                   <ChevronRight size={20} />
@@ -672,7 +736,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
                       key={index}
                       src={typeof img === 'string' ? img : img?.url || '/placeholder.jpg'}
                       alt={`${title} ${index + 1}`}
-                      loading="lazy" 
+                      loading="lazy"
                       onClick={() => {
                         setModalImageIndex(index);
                         setShowThumbnails(false);
@@ -785,7 +849,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
               )}
             </div>
 
-            {/* Alt Rezervasyon Alanı - Sabit */}
+            {/* Alt Rezervasyon Alanı */}
             <div className="border-t bg-white p-5 space-y-4">
               {/* Fiyat */}
               <div className="text-right">
@@ -796,7 +860,6 @@ const DetailModal: React.FC<DetailModalProps> = ({
                     </div>
                   ) : calculatedPrice ? (
                     <div>
-                      {/* İndirim varsa orijinal fiyatı göster */}
                       {calculatedPrice.hasDiscount && calculatedPrice.totalOriginalPrice && (
                         <div className="text-2xl text-gray-400 line-through">
                           €{calculatedPrice.totalOriginalPrice}
@@ -845,10 +908,15 @@ const DetailModal: React.FC<DetailModalProps> = ({
                 <div className="mt-6 flex justify-center">
                   <button
                     onClick={() => {
-                      onDetailNavigation(true);
-                      setTimeout(() => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }, 300);
+                      if (isApartment && item?.slugs?.[currentLang]) {
+                        const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
+                        window.location.href = `${langPrefix}/apartment/${item.slugs[currentLang]}`;
+                      } else {
+                        onDetailNavigation(true);
+                        setTimeout(() => {
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }, 300);
+                      }
                     }}
                     className="w-full max-w-sm bg-[#0a2e23] text-white px-6 py-3 rounded-xl hover:bg-[#0f4a3a] transition-colors font-medium flex items-center justify-center space-x-2"
                   >

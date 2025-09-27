@@ -386,12 +386,8 @@ export class SEOSchemaManager {
           a: `Dairemiz maksimum ${capacity} kişi konaklayabilir.`
         },
         {
-          q: "Evcil hayvan kabul ediyor musunuz?",
-          a: "Maalesef evcil hayvan kabul etmiyoruz."
-        },
-        {
           q: "İptal politikanız nedir?",
-          a: "48 saat öncesine kadar ücretsiz iptal imkanı sunuyoruz."
+          a: "Rezervasyon tipine göre değişmektedir."
         }
       ],
       en: [
@@ -404,12 +400,8 @@ export class SEOSchemaManager {
           a: `The apartment can accommodate up to ${capacity} guests.`
         },
         {
-          q: "Do you accept pets?",
-          a: "Unfortunately, we do not accept pets."
-        },
-        {
           q: "What is your cancellation policy?",
-          a: "We offer free cancellation up to 48 hours before arrival."
+          a: "Depends on the reservation type."
         }
       ]
     };

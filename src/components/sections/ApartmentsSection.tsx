@@ -316,7 +316,7 @@ const ApartmentsSection: React.FC<ApartmentsSectionProps> = ({
                                border-2 border-[#1a4a3a] hover:bg-[#1a4a3a] hover:text-white"
                     >
                       <span className="flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                        <span>{t.showAllApartments || 'Tüm Daireleri Gör'}</span>
+                        <span>{t.showAll|| 'Tüm Daireleri Gör'}</span>
                         <span className="bg-[#1a4a3a] text-white px-2 py-0.5 md:px-3 md:py-1 rounded-full 
                                      text-xs md:text-sm group-hover:bg-white group-hover:text-[#1a4a3a] transition-all">
                           {categoryFilteredApartments.length}

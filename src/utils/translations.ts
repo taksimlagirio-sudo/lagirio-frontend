@@ -234,6 +234,7 @@ export const translations = {
     recommendedForYou: "Sizin İçin Öneriler",
     recentlyViewed: "Son Görüntülenenler",
     
+    
     // Zaman
     today: "Bugün",
     tomorrow: "Yarın",
