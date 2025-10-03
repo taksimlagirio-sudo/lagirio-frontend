@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Header from '../components/common/Header';
 import HeroSection from '../components/sections/HeroSection';
 import ApartmentsSection from '../components/sections/ApartmentsSection';
+import ReviewsSection from '../components/sections/ReviewsSection'; // YENİ IMPORT
 import ToursSection from '../components/sections/ToursSection';
 import PartnerSection from '../components/sections/PartnerSection';
 
@@ -46,7 +47,7 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
   translations,
   setShowLoginModal,
   setCurrentView,
-  isGlobalSearching = false, // YENİ
+  isGlobalSearching = false,
   handleOpenModal,
   fetchApartments,
   globalSearchParams,
@@ -96,7 +97,6 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
     console.log('Arama yapılıyor:', searchData);
     
     setGlobalSearchParams(searchData);
-    // setIsSearching'i kaldırın, çünkü App.tsx hallediyor
     
     smoothScrollTo("apartments-section", 1500);
     
@@ -206,8 +206,15 @@ const RentalsPage: React.FC<RentalsPageProps> = ({
         currentLang={currentLang}
         onOpenModal={handleOpenModal}
         getAvailabilityStatus={getAvailabilityStatus}
-        isSearching={isGlobalSearching || isSearching} // YENİ - Her ikisini de kontrol et
+        isSearching={isGlobalSearching || isSearching}
         onShowLoginModal={() => setShowLoginModal(true)}
+      />
+
+      {/* YENİ - Misafir Yorumları Section */}
+      <ReviewsSection 
+        translations={translations}
+        currentLang={currentLang}
+        siteImages={siteImages}
       />
 
       <ToursSection
