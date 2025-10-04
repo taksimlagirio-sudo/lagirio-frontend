@@ -295,12 +295,12 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
               key={star}
-              size={16}
+              size={isMobile ? 14 : 16}  // Mobilde daha küçük yıldızlar
               className={star <= rating ? 'fill-[#ff9800] text-[#ff9800]' : 'text-white/30'}
             />
           ))}
         </div>
-        <span className="text-white font-semibold text-sm">
+        <span className="text-white font-semibold text-xs md:text-sm">
           {rating.toFixed(1)}
         </span>
       </div>
@@ -572,64 +572,64 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
                     <div className="relative z-10 h-full flex items-center pointer-events-none">
                       <div className="w-full md:w-2/3 lg:w-7/12 p-4 sm:p-6 md:p-10 lg:p-12">
                         {/* Yorum Metni */}
-                        <div className="mb-5 sm:mb-6 md:mb-8">
-                          <Quote className="text-[#ff9800]/70 mb-2 sm:mb-3 md:mb-4" size={24} />
+                        <div className="mb-4 sm:mb-5 md:mb-8">
+                          <Quote className="text-[#ff9800]/70 mb-2 sm:mb-3 md:mb-4" size={isMobile ? 20 : 24} />
                           <blockquote>
-                            <p className="text-white text-sm sm:text-base md:text-xl lg:text-2xl font-light leading-relaxed line-clamp-4">
+                            <p className="text-white text-xs sm:text-sm md:text-xl lg:text-2xl font-light leading-relaxed line-clamp-5 sm:line-clamp-4">
                               {getReviewComment(review)}
                             </p>
                           </blockquote>
                         </div>
 
                         {/* Müşteri Bilgileri ve Rating */}
-                        <div className="space-y-3 sm:space-y-4 md:space-y-6">
+                        <div className="space-y-2 sm:space-y-3 md:space-y-6">
                           {/* Rating */}
                           <div>
                             {renderStars(review.rating || 5)}
                           </div>
 
                           {/* Müşteri ve Platform Logo */}
-                          <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center justify-between gap-2">
                             {/* Sol: Müşteri Bilgileri */}
-                            <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 min-w-0 flex-1">
-                              {/* Avatar */}
+                            <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-1">
+                              {/* Avatar - MOBİLDE DAHA KÜÇÜK */}
                               <div className="flex-shrink-0">
                                 {review.customerAvatar ? (
                                   <img
                                     src={review.customerAvatar}
                                     alt={review.customerName}
-                                    className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full object-cover ring-2 sm:ring-3 ring-white/30 shadow-lg"
+                                    className="w-8 sm:w-10 md:w-14 h-8 sm:h-10 md:h-14 rounded-full object-cover ring-2 sm:ring-3 ring-white/30 shadow-lg"
                                     draggable={false}
                                   />
                                 ) : (
-                                  <div className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full bg-gradient-to-br from-[#ff9800] to-[#f57c00] 
-                                                flex items-center justify-center text-white font-bold shadow-lg text-xs sm:text-sm md:text-base">
+                                  <div className="w-8 sm:w-10 md:w-14 h-8 sm:h-10 md:h-14 rounded-full bg-gradient-to-br from-[#ff9800] to-[#f57c00] 
+                                                flex items-center justify-center text-white font-bold shadow-lg text-[10px] sm:text-xs md:text-base">
                                     {getInitials(review.customerName || '')}
                                   </div>
                                 )}
                               </div>
 
-                              {/* İsim ve Detaylar */}
+                              {/* İsim ve Detaylar - MOBİLDE DAHA KÜÇÜK */}
                               <div className="min-w-0 flex-1">
-                                <h4 className="font-bold text-white text-sm sm:text-base md:text-lg truncate">
+                                <h4 className="font-bold text-white text-xs sm:text-sm md:text-lg truncate">
                                   {review.customerName}
                                 </h4>
-                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3 text-white/70 text-xs md:text-sm">
+                                <div className="flex flex-wrap items-center gap-1 sm:gap-2 md:gap-3 text-white/70 text-[10px] md:text-sm">
                                   {review.customerLocation && (
                                     <span className="flex items-center gap-0.5 sm:gap-1">
-                                      <MapPin size={11} className="sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
+                                      <MapPin size={10} className="sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
                                       <span className="truncate">{review.customerLocation}</span>
                                     </span>
                                   )}
                                   <span className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                                    <Calendar size={11} className="sm:w-3 sm:h-3 md:w-3.5 md:h-3.5" />
+                                    <Calendar size={10} className="sm:w-3 sm:h-3 md:w-3.5 md:h-3.5" />
                                     {formatDate(review)}
                                   </span>
                                 </div>
                               </div>
                             </div>
 
-                            {/* Sağ: Platform Logo */}
+                            {/* Sağ: Platform Logo - MOBİLDE DAHA BÜYÜK */}
                             {platformLogos[review.platform] && (
                               <div className="flex-shrink-0">
                                 <img 
@@ -637,8 +637,10 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
                                   alt=""
                                   className={`${
                                     review.platform === 'airbnb' 
-                                      ? 'h-8 sm:h-10 md:h-12 lg:h-16'
-                                      : 'h-6 sm:h-8 md:h-10 lg:h-12'
+                                      ? 'h-12 sm:h-10 md:h-12 lg:h-16'  // Mobilde h-12
+                                      : review.platform === 'booking'
+                                      ? 'h-10 sm:h-8 md:h-10 lg:h-12'   // Booking mobilde h-10
+                                      : 'h-8 sm:h-8 md:h-10 lg:h-12'    // Diğerleri mobilde h-8
                                   } w-auto opacity-90`}
                                   style={{
                                     filter: review.platform === 'booking' 
@@ -651,20 +653,20 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
                             )}
                           </div>
 
-                          {/* Daire Bilgisi */}
+                          {/* Daire Bilgisi - MOBİLDE DAHA KÜÇÜK */}
                           {review.apartment && (
-                            <div className="pt-2.5 sm:pt-3 md:pt-4 border-t border-white/20">
-                              <p className="text-white/60 text-[10px] md:text-xs uppercase tracking-wider mb-0.5 md:mb-1">
+                            <div className="pt-2 sm:pt-2.5 md:pt-4 border-t border-white/20">
+                              <p className="text-white/60 text-[9px] md:text-xs uppercase tracking-wider mb-0.5">
                                 {t?.accommodation || 'Konaklama'}
                               </p>
                               <Link
                                 to={getApartmentLink(review.apartment)}
-                                className="text-white font-medium text-xs sm:text-sm md:text-base hover:text-[#ff9800] transition-colors inline-flex items-center gap-1 group pointer-events-auto"
+                                className="text-white font-medium text-[11px] sm:text-xs md:text-base hover:text-[#ff9800] transition-colors inline-flex items-center gap-0.5 group pointer-events-auto"
                               >
                                 <span className="line-clamp-1">
                                   {review.apartment.translations?.[currentLang]?.title || review.apartment.title}
                                 </span>
-                                <ChevronRight size={12} className="sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 transition-transform group-hover:translate-x-1 flex-shrink-0" />
+                                <ChevronRight size={10} className="sm:w-3 sm:h-3 md:w-4 md:h-4 transition-transform group-hover:translate-x-1 flex-shrink-0" />
                               </Link>
                             </div>
                           )}
