@@ -603,7 +603,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   return (
     <section 
       ref={sectionRef}
-      className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]"
+      className="featured-area relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]"
       style={isMobile ? { touchAction: 'pan-y' } : undefined}
     >
       {/* Yaratıcı Arka Plan Desenleri */}
