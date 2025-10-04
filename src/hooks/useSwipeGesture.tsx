@@ -1,3 +1,5 @@
+// hooks/useSwipeGesture.ts - DENGELİ VE OPTİMİZE VERSİYON
+
 import { useState, useCallback, useRef } from 'react';
 
 interface SwipeGestureOptions {
@@ -18,8 +20,8 @@ interface TouchStartPosition {
 type SwipeDirection = 'horizontal' | 'vertical' | null;
 
 const SWIPE_CONFIG = {
-  threshold: 30,
-  velocityThreshold: 0.25
+  threshold: 25,
+  velocityThreshold: 0.15
 };
 
 const useSwipeGesture = ({
@@ -40,14 +42,12 @@ const useSwipeGesture = ({
   
   // Refs
   const touchStartTime = useRef<number | null>(null);
-  const initialTouchY = useRef(0);
-  const scrollStartY = useRef(0);
-  const scrollStartTop = useRef(0);
+  const lastUpdateTime = useRef<number>(0);
   const elementRef = useRef<HTMLElement | null>(null);
   
   // Helper functions
   const getSwipeDirection = (deltaX: number, deltaY: number): SwipeDirection => {
-    if (Math.abs(deltaX) > Math.abs(deltaY) * 0.8) {
+    if (Math.abs(deltaX) > Math.abs(deltaY) * 0.5) {
       return 'horizontal';
     } else if (Math.abs(deltaY) > Math.abs(deltaX)) {
       return 'vertical';
@@ -57,17 +57,15 @@ const useSwipeGesture = ({
 
   const calculateSwipeResistance = (delta: number): number => {
     const absDelta = Math.abs(delta);
+    // Balanced resistance
     if (absDelta > 200) return 0.5;
-    if (absDelta > 150) return 0.7;
-    if (absDelta > 80) return 0.9;
+    if (absDelta > 150) return 0.65;
+    if (absDelta > 100) return 0.8;
+    if (absDelta > 50) return 0.9;
     return 1;
   };
 
-  const shouldTriggerSwipe = (delta: number, velocity: number): boolean => {
-    return Math.abs(delta) > threshold || velocity > velocityThreshold;
-  };
-
-  const vibrate = (duration: number = 15): void => {
+  const vibrate = (duration: number = 8): void => {
     if ('vibrate' in navigator) {
       navigator.vibrate(duration);
     }
@@ -82,66 +80,55 @@ const useSwipeGesture = ({
     const startY = touch.clientY;
     
     setTouchStart({ x: startX, y: startY });
-    initialTouchY.current = startY;
     touchStartTime.current = Date.now();
+    lastUpdateTime.current = Date.now();
     setSwipeDirection(null);
     setIsScrolling(false);
     setSwipeX(0);
     setSwipeY(0);
-    
-    if (elementRef.current) {
-      scrollStartY.current = startY;
-      scrollStartTop.current = elementRef.current.scrollTop;
-    }
+    setIsDragging(true);
   }, [enabled]);
   
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!enabled || !touchStart) return;
+    if (!enabled || !touchStart || !isDragging) return;
     
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStart.x;
     const deltaY = touch.clientY - touchStart.y;
     
     // Determine direction
-    if (!swipeDirection && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
+    if (!swipeDirection && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
       const direction = getSwipeDirection(deltaX, deltaY);
       setSwipeDirection(direction);
       
       if (direction === 'vertical') {
         setIsScrolling(true);
+        return;
       }
     }
     
-    // Horizontal swipe
+    // Handle horizontal swipe
     if (swipeDirection === 'horizontal') {
       e.preventDefault();
       
+      // Throttle updates to 60fps
+      const now = Date.now();
+      if (now - lastUpdateTime.current < 16) return; // Skip if less than 16ms
+      lastUpdateTime.current = now;
+      
+      // Apply resistance
       const resistance = calculateSwipeResistance(deltaX);
       const resistedDeltaX = deltaX * resistance;
       
+      // Direct update - no interpolation for smoother performance
       setSwipeX(resistedDeltaX);
-      setIsDragging(true);
     }
     
-    // Vertical swipe/scroll
+    // Handle vertical swipe
     if (swipeDirection === 'vertical') {
-      const container = elementRef.current;
-      if (container) {
-        const isAtTop = container.scrollTop <= 0;
-        const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
-        const scrollingUp = deltaY > 0;
-        const scrollingDown = deltaY < 0;
-        
-        if ((isAtTop && scrollingUp) || (isAtBottom && scrollingDown)) {
-          // Allow parent scroll
-        } else {
-          e.stopPropagation();
-        }
-      }
-      
       setSwipeY(deltaY);
     }
-  }, [enabled, touchStart, swipeDirection]);
+  }, [enabled, touchStart, swipeDirection, isDragging]);
   
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!enabled || !touchStart) return;
@@ -150,18 +137,18 @@ const useSwipeGesture = ({
     const deltaX = touch.clientX - touchStart.x;
     const deltaY = touch.clientY - touchStart.y;
     const duration = Date.now() - (touchStartTime.current || 0);
-    const velocityX = Math.abs(deltaX) / (duration || 1);
-    const velocityY = Math.abs(deltaY) / (duration || 1);
+    const velocityX = Math.abs(deltaX) / Math.max(1, duration);
+    const velocityY = Math.abs(deltaY) / Math.max(1, duration);
     
     setIsDragging(false);
     setSwipeDirection(null);
     setIsScrolling(false);
     
-    // Check horizontal swipe
+    // Check for swipe
     if (swipeDirection === 'horizontal' || 
         (Math.abs(deltaX) > Math.abs(deltaY) && !isScrolling)) {
       
-      if (shouldTriggerSwipe(deltaX, velocityX)) {
+      if (Math.abs(deltaX) > threshold || velocityX > velocityThreshold) {
         vibrate();
         
         if (deltaX < 0 && onSwipeLeft) {
@@ -170,10 +157,8 @@ const useSwipeGesture = ({
           onSwipeRight();
         }
       }
-    } 
-    // Check vertical swipe
-    else if (swipeDirection === 'vertical') {
-      if (shouldTriggerSwipe(deltaY, velocityY)) {
+    } else if (swipeDirection === 'vertical') {
+      if (Math.abs(deltaY) > threshold || velocityY > velocityThreshold) {
         if (deltaY < 0 && onSwipeUp) {
           onSwipeUp();
         } else if (deltaY > 0 && onSwipeDown) {
@@ -200,20 +185,18 @@ const useSwipeGesture = ({
     touchStartTime.current = null;
   }, []);
   
-  // Transform helpers
+  // Transform helpers - SİMPLE VE PERFORMANSLI
   const getSwipeTransform = useCallback((baseTransform: string = ''): string => {
-    if (!isDragging) return baseTransform;
+    if (!isDragging && swipeX === 0) return baseTransform;
     
-    const rotateY = swipeX * 0.03;
-    const scale = 1 - Math.abs(swipeX) * 0.0001;
-    
-    return `${baseTransform} translateX(${swipeX}px) rotateY(${rotateY}deg) scale(${scale})`;
+    // Simple transform
+    const rotateY = swipeX * 0.035;
+    return `${baseTransform} translate3d(${swipeX}px, 0, 0) rotateY(${rotateY}deg)`;
   }, [isDragging, swipeX]);
   
   const getSwipeOpacity = useCallback((): number => {
     if (!isDragging) return 1;
-    
-    return Math.max(0.8, 1 - Math.abs(swipeX) * 0.002);
+    return Math.max(0.75, 1 - Math.abs(swipeX) * 0.001);
   }, [isDragging, swipeX]);
   
   return {
