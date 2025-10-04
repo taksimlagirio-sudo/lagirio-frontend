@@ -140,7 +140,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // Touch handlers
+  // Touch handlers - ESKİ ÇALIŞAN MANTIK
   const minSwipeDistance = 50;
   
   const onTouchStart = (e: React.TouchEvent) => {
@@ -175,14 +175,13 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     if (isLeftSwipe && reviews.length > 1) {
       triggerHaptic();
       handleNext();
-      resetTimer(8000); // Mobilde swipe sonrası daha uzun bekleme
+      resetTimer(8000);
     } else if (isRightSwipe && reviews.length > 1) {
       triggerHaptic();
       handlePrev();
       resetTimer(8000);
     }
     
-    // Reset swipe offset
     setSwipeOffset(0);
   };
   
@@ -199,10 +198,10 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // Otomatik geçiş - mobilde daha yavaş
+  // Otomatik geçiş
   useEffect(() => {
     if (!isPaused && reviews.length > 1) {
-      const delay = isMobile ? 7000 : 5000; // Mobilde 7 saniye
+      const delay = isMobile ? 7000 : 5000;
       autoPlayRef.current = setTimeout(() => {
         handleNext();
       }, delay);
@@ -246,6 +245,52 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       setIsTransitioning(false);
       resetTimer(isMobile ? 8000 : 5000);
     }, 300);
+  };
+
+  // 3D Stack için kart pozisyon hesaplama
+  const getCardStyle = (offset: number) => {
+    if (!isMobile) return {};
+    
+    const baseZ = 40;
+    const spacing = 25;
+    const rotationDegree = 4;
+    const scaleDecrement = 0.08;
+    
+    if (offset === 0) {
+      // Aktif kart
+      return {
+        transform: `translate3d(${swipeOffset}px, 0, ${baseZ}px) rotateY(${swipeOffset * 0.05}deg) scale(1)`,
+        opacity: 1,
+        zIndex: 30,
+        transition: swipeOffset === 0 ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        pointerEvents: 'auto' as const,
+      };
+    } else if (offset === 1) {
+      // Sağdaki kart
+      return {
+        transform: `translate3d(${30 + swipeOffset * 0.2}px, 0, ${baseZ - spacing}px) rotateY(-${rotationDegree}deg) scale(${1 - scaleDecrement})`,
+        opacity: 0.5,
+        zIndex: 20,
+        transition: swipeOffset === 0 ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        pointerEvents: 'none' as const,
+      };
+    } else if (offset === -1) {
+      // Soldaki kart
+      return {
+        transform: `translate3d(${-30 + swipeOffset * 0.2}px, 0, ${baseZ - spacing}px) rotateY(${rotationDegree}deg) scale(${1 - scaleDecrement})`,
+        opacity: 0.5,
+        zIndex: 20,
+        transition: swipeOffset === 0 ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        pointerEvents: 'none' as const,
+      };
+    }
+    
+    return {
+      transform: 'translate3d(0, 0, -100px) scale(0.7)',
+      opacity: 0,
+      zIndex: 10,
+      pointerEvents: 'none' as const,
+    };
   };
 
   // Yıldız render
@@ -340,7 +385,135 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // Loading state
+  // Review Card Component
+  const ReviewCard: React.FC<{ review: Review; offset: number }> = ({ review, offset }) => {
+    if (!review) return null;
+
+    return (
+      <div 
+        className={`
+          ${isMobile ? 'absolute inset-x-4' : 'relative'}
+          rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl
+          h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px]
+        `}
+        style={isMobile ? {
+          transformStyle: 'preserve-3d',
+          ...getCardStyle(offset)
+        } : undefined}
+      >
+        {/* Arka Plan Görsel */}
+        <div className="absolute inset-0">
+          {review.apartment?.images?.[0] ? (
+            <>
+              <img
+                src={review.apartment.images[0].url || review.apartment.images[0]}
+                alt={review.apartment.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+            </>
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#2d5a4d]/95 to-[#2d5a4d]/80"></div>
+          )}
+        </div>
+
+        {/* İçerik */}
+        <div className="relative z-10 h-full flex items-center">
+          <div className="w-full md:w-2/3 lg:w-7/12 p-4 sm:p-6 md:p-10 lg:p-12">
+            <div className="mb-5 sm:mb-6 md:mb-8">
+              <Quote className="text-[#ff9800]/70 mb-2 sm:mb-3 md:mb-4" size={isMobile ? 24 : 36} />
+              <blockquote>
+                <p className="text-white text-sm sm:text-base md:text-xl lg:text-2xl font-light leading-relaxed line-clamp-4 md:line-clamp-4">
+                  {getReviewComment(review)}
+                </p>
+              </blockquote>
+            </div>
+
+            <div className="space-y-3 sm:space-y-4 md:space-y-6">
+              <div>
+                {renderStars(review.rating || 5)}
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 min-w-0 flex-1">
+                  <div className="flex-shrink-0">
+                    {review.customerAvatar ? (
+                      <img
+                        src={review.customerAvatar}
+                        alt={review.customerName}
+                        className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full object-cover ring-2 sm:ring-3 ring-white/30 shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full bg-gradient-to-br from-[#ff9800] to-[#f57c00] 
+                                    flex items-center justify-center text-white font-bold shadow-lg text-xs sm:text-sm md:text-base">
+                        {getInitials(review.customerName || '')}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-white text-sm sm:text-base md:text-lg truncate">
+                      {review.customerName}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3 text-white/70 text-xs md:text-sm">
+                      {review.customerLocation && (
+                        <span className="flex items-center gap-0.5 sm:gap-1">
+                          <MapPin size={11} className="sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
+                          <span className="truncate">{review.customerLocation}</span>
+                        </span>
+                      )}
+                      <span className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+                        <Calendar size={11} className="sm:w-3 sm:h-3 md:w-3.5 md:h-3.5" />
+                        {formatDate(review)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {platformLogos[review.platform] && (
+                  <div className="flex-shrink-0">
+                    <img 
+                      src={platformLogos[review.platform]}
+                      alt=""
+                      className={`${
+                        review.platform === 'airbnb' 
+                          ? 'h-8 sm:h-10 md:h-12 lg:h-16'
+                          : 'h-6 sm:h-8 md:h-10 lg:h-12'
+                      } w-auto opacity-90 hover:opacity-100 transition-opacity`}
+                      style={{
+                        filter: review.platform === 'booking' 
+                          ? 'brightness(0) invert(1)' 
+                          : undefined
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {review.apartment && (
+                <div className="pt-2.5 sm:pt-3 md:pt-4 border-t border-white/20">
+                  <p className="text-white/60 text-[10px] md:text-xs uppercase tracking-wider mb-0.5 md:mb-1">
+                    {t?.accommodation || 'Konaklama'}
+                  </p>
+                  <Link
+                    to={getApartmentLink(review.apartment)}
+                    className="text-white font-medium text-xs sm:text-sm md:text-base hover:text-[#ff9800] transition-colors inline-flex items-center gap-1 group"
+                  >
+                    <span className="line-clamp-1">
+                      {review.apartment.translations?.[currentLang]?.title || review.apartment.title}
+                    </span>
+                    <ChevronRight size={12} className="sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 transition-transform group-hover:translate-x-1 flex-shrink-0" />
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <section className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]">
@@ -358,7 +531,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     );
   }
 
-  // Error state
   if (error) {
     return (
       <section className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]">
@@ -377,17 +549,15 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     );
   }
 
-  // No reviews
   if (reviews.length === 0) {
     return null;
   }
 
-  const currentReview = reviews[currentIndex];
-  if (!currentReview) return null;
+  const prevIndex = (currentIndex - 1 + reviews.length) % reviews.length;
+  const nextIndex = (currentIndex + 1) % reviews.length;
 
   return (
     <section className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]">
-      {/* Yaratıcı Arka Plan Desenleri */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 right-0 h-64 opacity-10">
           <svg viewBox="0 0 1200 200" className="absolute inset-0 w-full h-full">
@@ -410,7 +580,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Başlık */}
         <div className="text-center mb-8 md:mb-16">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-[#ff9800] via-[#f57c00] to-[#ff9800] bg-clip-text text-transparent mb-2 md:mb-4">
             {t?.guestReviews || 'Misafir Yorumları'}
@@ -425,13 +594,11 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
           </div>
         </div>
 
-        {/* Ana Container */}
         <div 
           className="relative max-w-6xl mx-auto"
           onMouseEnter={() => !isMobile && setIsPaused(true)}
           onMouseLeave={() => !isMobile && setIsPaused(false)}
         >
-          {/* Navigation Arrows - SADECE DESKTOP */}
           {reviews.length > 1 && !isMobile && (
             <>
               <button
@@ -457,156 +624,38 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
             </>
           )}
 
-          {/* Review Card */}
-          <div 
-            className={`
-              relative rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl
-              transition-all duration-500 transform
-              ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
-              h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px]
-              ${isMobile ? 'cursor-grab active:cursor-grabbing' : ''}
-            `}
-            style={isMobile ? {
-              transform: `translateX(${swipeOffset}px)`,
-              transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none'
-            } : undefined}
-            onTouchStart={isMobile ? onTouchStart : undefined}
-            onTouchMove={isMobile ? onTouchMove : undefined}
-            onTouchEnd={isMobile ? onTouchEnd : undefined}
-          >
-            {/* Swipe Hint - Mobilde ilk 3 saniye */}
-            {isMobile && isSwipeHintVisible && reviews.length > 1 && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none animate-pulse">
-                <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2 shadow-lg">
-                  <ChevronLeft size={18} className="text-white" />
-                  <span className="text-white text-sm font-medium">Kaydır</span>
-                  <ChevronRight size={18} className="text-white" />
+          {/* 3D Container - SWIPE EVENTS BURAYA */}
+          {isMobile ? (
+            <div 
+              className="relative h-[350px] sm:h-[400px]"
+              style={{
+                perspective: '1200px',
+                perspectiveOrigin: '50% 50%'
+              }}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
+              {/* Swipe Hint */}
+              {isSwipeHintVisible && reviews.length > 1 && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none animate-pulse">
+                  <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2 shadow-lg">
+                    <ChevronLeft size={18} className="text-white" />
+                    <span className="text-white text-sm font-medium">Kaydır</span>
+                    <ChevronRight size={18} className="text-white" />
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Arka Plan Görsel */}
-            <div className="absolute inset-0">
-              {currentReview.apartment?.images?.[0] ? (
-                <>
-                  <img
-                    src={currentReview.apartment.images[0].url || currentReview.apartment.images[0]}
-                    alt={currentReview.apartment.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-transparent"></div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                </>
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[#2d5a4d]/95 to-[#2d5a4d]/80"></div>
               )}
+              
+              <ReviewCard review={reviews[prevIndex]} offset={-1} />
+              <ReviewCard review={reviews[currentIndex]} offset={0} />
+              <ReviewCard review={reviews[nextIndex]} offset={1} />
             </div>
-
-            {/* İçerik */}
-            <div className="relative z-10 h-full flex items-center">
-              <div className="w-full md:w-2/3 lg:w-7/12 p-4 sm:p-6 md:p-10 lg:p-12">
-                {/* Yorum Metni */}
-                <div className="mb-5 sm:mb-6 md:mb-8">
-                  <Quote className="text-[#ff9800]/70 mb-2 sm:mb-3 md:mb-4" size={isMobile ? 24 : 36} />
-                  <blockquote>
-                    <p className="text-white text-sm sm:text-base md:text-xl lg:text-2xl font-light leading-relaxed line-clamp-4 md:line-clamp-4">
-                      {getReviewComment(currentReview)}
-                    </p>
-                  </blockquote>
-                </div>
-
-                {/* Müşteri Bilgileri ve Rating */}
-                <div className="space-y-3 sm:space-y-4 md:space-y-6">
-                  {/* Rating */}
-                  <div>
-                    {renderStars(currentReview.rating || 5)}
-                  </div>
-
-                  {/* Müşteri ve Platform Logo */}
-                  <div className="flex items-center justify-between gap-3">
-                    {/* Sol: Müşteri Bilgileri */}
-                    <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 min-w-0 flex-1">
-                      {/* Avatar */}
-                      <div className="flex-shrink-0">
-                        {currentReview.customerAvatar ? (
-                          <img
-                            src={currentReview.customerAvatar}
-                            alt={currentReview.customerName}
-                            className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full object-cover ring-2 sm:ring-3 ring-white/30 shadow-lg"
-                          />
-                        ) : (
-                          <div className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full bg-gradient-to-br from-[#ff9800] to-[#f57c00] 
-                                        flex items-center justify-center text-white font-bold shadow-lg text-xs sm:text-sm md:text-base">
-                            {getInitials(currentReview.customerName || '')}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* İsim ve Detaylar */}
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-white text-sm sm:text-base md:text-lg truncate">
-                          {currentReview.customerName}
-                        </h4>
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3 text-white/70 text-xs md:text-sm">
-                          {currentReview.customerLocation && (
-                            <span className="flex items-center gap-0.5 sm:gap-1">
-                              <MapPin size={11} className="sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
-                              <span className="truncate">{currentReview.customerLocation}</span>
-                            </span>
-                          )}
-                          <span className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                            <Calendar size={11} className="sm:w-3 sm:h-3 md:w-3.5 md:h-3.5" />
-                            {formatDate(currentReview)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Sağ: Platform Logo */}
-                    {platformLogos[currentReview.platform] && (
-                      <div className="flex-shrink-0">
-                        <img 
-                          src={platformLogos[currentReview.platform]}
-                          alt=""
-                          className={`${
-                            currentReview.platform === 'airbnb' 
-                              ? 'h-8 sm:h-10 md:h-12 lg:h-16'
-                              : 'h-6 sm:h-8 md:h-10 lg:h-12'
-                          } w-auto opacity-90 hover:opacity-100 transition-opacity`}
-                          style={{
-                            filter: currentReview.platform === 'booking' 
-                              ? 'brightness(0) invert(1)' 
-                              : undefined
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Daire Bilgisi */}
-                  {currentReview.apartment && (
-                    <div className="pt-2.5 sm:pt-3 md:pt-4 border-t border-white/20">
-                      <p className="text-white/60 text-[10px] md:text-xs uppercase tracking-wider mb-0.5 md:mb-1">
-                        {t?.accommodation || 'Konaklama'}
-                      </p>
-                      <Link
-                        to={getApartmentLink(currentReview.apartment)}
-                        className="text-white font-medium text-xs sm:text-sm md:text-base hover:text-[#ff9800] transition-colors inline-flex items-center gap-1 group"
-                      >
-                        <span className="line-clamp-1">
-                          {currentReview.apartment.translations?.[currentLang]?.title || currentReview.apartment.title}
-                        </span>
-                        <ChevronRight size={12} className="sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 transition-transform group-hover:translate-x-1 flex-shrink-0" />
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          ) : (
+            <ReviewCard review={reviews[currentIndex]} offset={0} />
+          )}
         </div>
 
-        {/* Pagination Dots */}
         {reviews.length > 1 && (
           <div className="flex justify-center items-center gap-2 md:gap-3 mt-6 md:mt-10">
             {reviews.map((_, idx) => (
@@ -627,7 +676,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
           </div>
         )}
 
-        {/* Mobil Swipe İndikatörü */}
         {isMobile && reviews.length > 1 && (
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-500">
