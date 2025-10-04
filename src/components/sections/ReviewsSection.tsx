@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Star, MapPin, Calendar, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -66,6 +66,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const [isSwipeHintVisible, setIsSwipeHintVisible] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Platform Logos
   const platformLogos: { [key: string]: string } = {
@@ -97,83 +98,118 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   }, [isSwipeHintVisible, isMobile]);
 
-  // Touch event listeners - Section seviyesinde
-  useEffect(() => {
-    if (!isMobile || !sectionRef.current || reviews.length === 0) return;
+  // Navigation fonksiyonlarını useCallback ile sarmalayalım
+  const handleNext = useCallback(() => {
+    if (isTransitioning || reviews.length === 0) return;
+    
+    setCurrentIndex((prev) => {
+      if (prev >= reviews.length - 1) return prev;
+      setIsTransitioning(true);
+      setTimeout(() => setIsTransitioning(false), 300);
+      return prev + 1;
+    });
+  }, [isTransitioning, reviews.length]);
 
-    const section = sectionRef.current;
-    let startX: number | null = null;
-    let startY: number | null = null;
-    let currentX: number | null = null;
-    let isHorizontalSwipe = false;
+  const handlePrev = useCallback(() => {
+    if (isTransitioning || reviews.length === 0) return;
+    
+    setCurrentIndex((prev) => {
+      if (prev <= 0) return prev;
+      setIsTransitioning(true);
+      setTimeout(() => setIsTransitioning(false), 300);
+      return prev - 1;
+    });
+  }, [isTransitioning, reviews.length]);
+
+  // Touch Event Handlers - Basitleştirilmiş
+  useEffect(() => {
+    if (!isMobile || reviews.length === 0) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    let startX = 0;
+    let startY = 0;
+    let isSwiping = false;
 
     const handleTouchStart = (e: TouchEvent) => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
-      currentX = e.touches[0].clientX;
-      isHorizontalSwipe = false;
+      isSwiping = false;
       setTouchStartX(startX);
-      setTouchCurrentX(currentX);
+      setTouchCurrentX(startX);
       setIsSwipeHintVisible(false);
+      
+      // Debug
+      console.log('Touch Start:', startX);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (startX === null || startY === null) return;
+      if (!startX) return;
       
-      currentX = e.touches[0].clientX;
+      const currentX = e.touches[0].clientX;
       const currentY = e.touches[0].clientY;
       
       const diffX = Math.abs(currentX - startX);
       const diffY = Math.abs(currentY - startY);
       
-      // Yatay swipe mi dikey scroll mü?
-      if (!isHorizontalSwipe && diffX > 10) {
-        if (diffX > diffY) {
-          isHorizontalSwipe = true;
-        }
-      }
-      
-      // Sadece yatay swipe ise scroll'u engelle
-      if (isHorizontalSwipe) {
-        e.preventDefault();
+      // Yatay hareket mi kontrol et
+      if (diffX > diffY && diffX > 10) {
+        isSwiping = true;
+        e.preventDefault(); // Scroll'u engelle
         setTouchCurrentX(currentX);
+        
+        // Debug
+        console.log('Touch Move:', currentX, 'Diff:', currentX - startX);
       }
     };
 
-    const handleTouchEnd = () => {
-      if (startX === null || currentX === null || !isHorizontalSwipe) {
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!startX || !touchCurrentX || !isSwiping) {
         setTouchStartX(null);
         setTouchCurrentX(null);
         return;
       }
 
-      const distance = startX - currentX;
-      const minSwipeDistance = 50;
+      const endX = e.changedTouches[0].clientX;
+      const diffX = startX - endX;
+      const threshold = 50;
       
-      if (distance > minSwipeDistance && currentIndex < reviews.length - 1) {
-        if ('vibrate' in navigator) navigator.vibrate(10);
-        handleNext();
-        resetTimer(8000);
-      } else if (distance < -minSwipeDistance && currentIndex > 0) {
-        if ('vibrate' in navigator) navigator.vibrate(10);
-        handlePrev();
-        resetTimer(8000);
+      // Debug
+      console.log('Touch End - Diff:', diffX, 'Threshold:', threshold);
+      
+      if (Math.abs(diffX) > threshold) {
+        if (diffX > 0 && currentIndex < reviews.length - 1) {
+          // Sola kaydır (sonraki)
+          console.log('Swipe Left - Next');
+          handleNext();
+          if ('vibrate' in navigator) navigator.vibrate(10);
+        } else if (diffX < 0 && currentIndex > 0) {
+          // Sağa kaydır (önceki)
+          console.log('Swipe Right - Previous');
+          handlePrev();
+          if ('vibrate' in navigator) navigator.vibrate(10);
+        }
       }
 
       setTouchStartX(null);
       setTouchCurrentX(null);
+      startX = 0;
+      isSwiping = false;
     };
 
-    section.addEventListener('touchstart', handleTouchStart, { passive: true });
-    section.addEventListener('touchmove', handleTouchMove, { passive: false });
-    section.addEventListener('touchend', handleTouchEnd, { passive: true });
+    // Event listener'ları ekle
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
 
+    // Cleanup
     return () => {
-      section.removeEventListener('touchstart', handleTouchStart);
-      section.removeEventListener('touchmove', handleTouchMove);
-      section.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isMobile, currentIndex, reviews.length]);
+  }, [isMobile, currentIndex, reviews.length, handleNext, handlePrev, touchCurrentX]);
 
   // Yorumları yükle
   useEffect(() => {
@@ -212,7 +248,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   };
 
   // Timer'ı sıfırlama fonksiyonu
-  const resetTimer = (delay: number = 5000) => {
+  const resetTimer = useCallback((delay: number = 5000) => {
     if (autoPlayRef.current) {
       clearTimeout(autoPlayRef.current);
     }
@@ -222,9 +258,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         handleNext();
       }, delay);
     }
-  };
+  }, [isPaused, reviews.length, handleNext]);
 
-  // Otomatik geçiş - mobilde daha yavaş
+  // Otomatik geçiş
   useEffect(() => {
     if (!isPaused && reviews.length > 1 && currentIndex < reviews.length - 1) {
       const delay = isMobile ? 7000 : 5000;
@@ -238,27 +274,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         clearTimeout(autoPlayRef.current);
       }
     };
-  }, [currentIndex, reviews.length, isPaused, isMobile]);
-
-  const handleNext = () => {
-    if (isTransitioning || reviews.length === 0 || currentIndex >= reviews.length - 1) return;
-    
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => prev + 1);
-      setIsTransitioning(false);
-    }, 300);
-  };
-
-  const handlePrev = () => {
-    if (isTransitioning || reviews.length === 0 || currentIndex <= 0) return;
-    
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => prev - 1);
-      setIsTransitioning(false);
-    }, 300);
-  };
+  }, [currentIndex, reviews.length, isPaused, isMobile, handleNext]);
 
   const handleDotClick = (index: number) => {
     if (isTransitioning || index === currentIndex) return;
@@ -387,7 +403,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         opacity: 1,
         zIndex: 30,
         transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-        pointerEvents: 'auto' as const,
       };
     } else if (positionOffset === 1) {
       return {
@@ -678,10 +693,12 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
 
           {isMobile ? (
             <div 
-              className="reviews-3d-container relative h-[350px] sm:h-[400px]"  // ← class ekle
+              ref={containerRef}
+              className="reviews-3d-container relative h-[350px] sm:h-[400px]"
               style={{
                 perspective: '1200px',
-                perspectiveOrigin: '50% 50%'
+                perspectiveOrigin: '50% 50%',
+                touchAction: 'pan-y'
               }}
             >
               {hasPrev && <ReviewCard review={reviews[currentIndex - 1]} positionOffset={-1} />}
