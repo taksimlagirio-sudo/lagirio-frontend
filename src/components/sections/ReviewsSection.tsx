@@ -253,79 +253,82 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   };
 
   // 3D Stack için pozisyon hesaplama
-  const getCardStyle = (index: number) => {
+  // 3D Stack için pozisyon hesaplama
+  // 3D Stack için pozisyon hesaplama
+    const getCardStyle = (index: number) => {
     const offset = index - currentIndex;
     const dragOffset = swipeOffset / 100;
     
     // Görünmeyen kartlar
     if (Math.abs(offset) > 2) {
-      return {
+        return {
         opacity: 0,
         transform: 'translateZ(-200px) scale(0.5)',
         pointerEvents: 'none' as const,
-      };
+        };
     }
     
-    // Ana kart (currentIndex)
+    // Ana kart (currentIndex) - POİNTEREVENTS KALDIRILDI
     if (offset === 0) {
-      return {
+        return {
         zIndex: 30,
         opacity: 1,
         transform: `
-          translateZ(0px) 
-          translateX(${swipeOffset}px) 
-          rotateY(${dragOffset * 5}deg)
-          scale(1)
+            translateZ(0px) 
+            translateX(${swipeOffset}px) 
+            rotateY(${dragOffset * 5}deg)
+            scale(1)
         `,
         transition: swipeOffset === 0 ? 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)' : 'none',
-      };
+        // pointerEvents satırı silindi - touch event'ler çalışsın
+        };
     }
     // Sonraki kart
     else if (offset === 1) {
-      return {
+        return {
         zIndex: 20,
         opacity: 0.8 - Math.max(0, dragOffset * 0.3),
         transform: `
-          translateZ(-40px) 
-          translateX(${60 + Math.min(0, swipeOffset * 0.3)}px) 
-          rotateY(-12deg)
-          scale(0.9)
+            translateZ(-40px) 
+            translateX(${60 + Math.min(0, swipeOffset * 0.3)}px) 
+            rotateY(-12deg)
+            scale(0.9)
         `,
         transition: swipeOffset === 0 ? 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)' : 'none',
         pointerEvents: 'none' as const,
-      };
+        };
     }
     // Önceki kart  
     else if (offset === -1) {
-      return {
+        return {
         zIndex: 20,
         opacity: 0.8 + Math.min(0, dragOffset * 0.3),
         transform: `
-          translateZ(-40px) 
-          translateX(${-60 + Math.max(0, swipeOffset * 0.3)}px) 
-          rotateY(12deg)
-          scale(0.9)
+            translateZ(-40px) 
+            translateX(${-60 + Math.max(0, swipeOffset * 0.3)}px) 
+            rotateY(12deg)
+            scale(0.9)
         `,
         transition: swipeOffset === 0 ? 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)' : 'none',
         pointerEvents: 'none' as const,
-      };
+        };
     }
     // Arka plandaki kartlar
     else {
-      return {
+        return {
         zIndex: 10,
         opacity: 0.4,
         transform: `
-          translateZ(-80px) 
-          translateX(${offset * 30}px) 
-          rotateY(${offset * -8}deg)
-          scale(0.75)
+            translateZ(-80px) 
+            translateX(${offset * 30}px) 
+            rotateY(${offset * -8}deg)
+            scale(0.75)
         `,
         transition: 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
         pointerEvents: 'none' as const,
-      };
+        };
     }
-  };
+    };
 
   // Yıldız render
   const renderStars = (rating: number) => {
