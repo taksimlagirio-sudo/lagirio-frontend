@@ -54,18 +54,18 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   const t = translations[currentLang];
   const [reviews, setReviews] = useState<Review[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const autoPlayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   
-  // Touch/Swipe için state'ler
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
+  // Mobile swipe için state'ler
   const [isMobile, setIsMobile] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0);
+  const [translateX, setTranslateX] = useState(0);
   const [isSwipeHintVisible, setIsSwipeHintVisible] = useState(true);
-  const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Platform Logos
@@ -97,119 +97,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isSwipeHintVisible, isMobile]);
-
-  // Navigation fonksiyonlarını useCallback ile sarmalayalım
-  const handleNext = useCallback(() => {
-    if (isTransitioning || reviews.length === 0) return;
-    
-    setCurrentIndex((prev) => {
-      if (prev >= reviews.length - 1) return prev;
-      setIsTransitioning(true);
-      setTimeout(() => setIsTransitioning(false), 300);
-      return prev + 1;
-    });
-  }, [isTransitioning, reviews.length]);
-
-  const handlePrev = useCallback(() => {
-    if (isTransitioning || reviews.length === 0) return;
-    
-    setCurrentIndex((prev) => {
-      if (prev <= 0) return prev;
-      setIsTransitioning(true);
-      setTimeout(() => setIsTransitioning(false), 300);
-      return prev - 1;
-    });
-  }, [isTransitioning, reviews.length]);
-
-  // Touch Event Handlers - Basitleştirilmiş
-  useEffect(() => {
-    if (!isMobile || reviews.length === 0) return;
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    let startX = 0;
-    let startY = 0;
-    let isSwiping = false;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      isSwiping = false;
-      setTouchStartX(startX);
-      setTouchCurrentX(startX);
-      setIsSwipeHintVisible(false);
-      
-      // Debug
-      console.log('Touch Start:', startX);
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!startX) return;
-      
-      const currentX = e.touches[0].clientX;
-      const currentY = e.touches[0].clientY;
-      
-      const diffX = Math.abs(currentX - startX);
-      const diffY = Math.abs(currentY - startY);
-      
-      // Yatay hareket mi kontrol et
-      if (diffX > diffY && diffX > 10) {
-        isSwiping = true;
-        e.preventDefault(); // Scroll'u engelle
-        setTouchCurrentX(currentX);
-        
-        // Debug
-        console.log('Touch Move:', currentX, 'Diff:', currentX - startX);
-      }
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (!startX || !touchCurrentX || !isSwiping) {
-        setTouchStartX(null);
-        setTouchCurrentX(null);
-        return;
-      }
-
-      const endX = e.changedTouches[0].clientX;
-      const diffX = startX - endX;
-      const threshold = 50;
-      
-      // Debug
-      console.log('Touch End - Diff:', diffX, 'Threshold:', threshold);
-      
-      if (Math.abs(diffX) > threshold) {
-        if (diffX > 0 && currentIndex < reviews.length - 1) {
-          // Sola kaydır (sonraki)
-          console.log('Swipe Left - Next');
-          handleNext();
-          if ('vibrate' in navigator) navigator.vibrate(10);
-        } else if (diffX < 0 && currentIndex > 0) {
-          // Sağa kaydır (önceki)
-          console.log('Swipe Right - Previous');
-          handlePrev();
-          if ('vibrate' in navigator) navigator.vibrate(10);
-        }
-      }
-
-      setTouchStartX(null);
-      setTouchCurrentX(null);
-      startX = 0;
-      isSwiping = false;
-    };
-
-    // Event listener'ları ekle
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-    // Cleanup
-    return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isMobile, currentIndex, reviews.length, handleNext, handlePrev, touchCurrentX]);
 
   // Yorumları yükle
   useEffect(() => {
@@ -247,26 +134,64 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // Timer'ı sıfırlama fonksiyonu
-  const resetTimer = useCallback((delay: number = 5000) => {
+  // Mobile Swipe Handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!isMobile || reviews.length <= 1) return;
+    
+    setIsDragging(true);
+    setStartX(e.touches[0].clientX);
+    setCurrentX(e.touches[0].clientX);
+    setIsSwipeHintVisible(false);
+    
+    // Auto-play'i durdur
     if (autoPlayRef.current) {
       clearTimeout(autoPlayRef.current);
     }
+  }, [isMobile, reviews.length]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging || !isMobile) return;
     
-    if (!isPaused && reviews.length > 1) {
-      autoPlayRef.current = setTimeout(() => {
-        handleNext();
-      }, delay);
+    const x = e.touches[0].clientX;
+    setCurrentX(x);
+    const diff = x - startX;
+    setTranslateX(diff);
+  }, [isDragging, isMobile, startX]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isDragging || !isMobile) return;
+    
+    setIsDragging(false);
+    const diff = currentX - startX;
+    const threshold = 50;
+    
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0 && currentIndex > 0) {
+        // Sağa swipe - önceki
+        setCurrentIndex(prev => prev - 1);
+        if ('vibrate' in navigator) navigator.vibrate(10);
+      } else if (diff < 0 && currentIndex < reviews.length - 1) {
+        // Sola swipe - sonraki
+        setCurrentIndex(prev => prev + 1);
+        if ('vibrate' in navigator) navigator.vibrate(10);
+      }
     }
-  }, [isPaused, reviews.length, handleNext]);
+    
+    setTranslateX(0);
+    setStartX(0);
+    setCurrentX(0);
+  }, [isDragging, isMobile, currentX, startX, currentIndex, reviews.length]);
 
   // Otomatik geçiş
   useEffect(() => {
-    if (!isPaused && reviews.length > 1 && currentIndex < reviews.length - 1) {
+    if (!isPaused && reviews.length > 1 && !isDragging) {
       const delay = isMobile ? 7000 : 5000;
-      autoPlayRef.current = setTimeout(() => {
-        handleNext();
-      }, delay);
+      
+      if (currentIndex < reviews.length - 1) {
+        autoPlayRef.current = setTimeout(() => {
+          setCurrentIndex(prev => prev + 1);
+        }, delay);
+      }
     }
     
     return () => {
@@ -274,28 +199,90 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         clearTimeout(autoPlayRef.current);
       }
     };
-  }, [currentIndex, reviews.length, isPaused, isMobile, handleNext]);
+  }, [currentIndex, reviews.length, isPaused, isMobile, isDragging]);
+
+  // Desktop navigation
+  const handleNext = () => {
+    if (currentIndex < reviews.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  };
 
   const handleDotClick = (index: number) => {
-    if (isTransitioning || index === currentIndex) return;
-    
+    setCurrentIndex(index);
     if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
+  };
+
+  // 3D Stack için pozisyon hesaplama (Mobile)
+  const getCardStyle = (index: number) => {
+    if (!isMobile) return {};
     
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex(index);
-      setIsTransitioning(false);
-      resetTimer(isMobile ? 8000 : 5000);
-    }, 300);
+    const offset = index - currentIndex;
+    const dragOffset = isDragging ? translateX * 0.003 : 0;
+    
+    // Ana kart (currentIndex)
+    if (offset === 0) {
+      return {
+        transform: `
+          translateZ(60px) 
+          translateX(${translateX * 0.8}px) 
+          rotateY(${-dragOffset * 10}deg) 
+          scale(1)
+        `,
+        opacity: 1,
+        zIndex: 30,
+        transition: isDragging ? 'none' : 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
+      };
+    }
+    // Sonraki kart
+    else if (offset === 1) {
+      return {
+        transform: `
+          translateZ(20px) 
+          translateX(${40 + translateX * 0.3}px) 
+          rotateY(-8deg) 
+          scale(0.9)
+        `,
+        opacity: 0.7 + Math.min(0.3, -translateX / 500),
+        zIndex: 20,
+        transition: isDragging ? 'none' : 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
+        pointerEvents: 'none' as const,
+      };
+    }
+    // Önceki kart
+    else if (offset === -1) {
+      return {
+        transform: `
+          translateZ(20px) 
+          translateX(${-40 + translateX * 0.3}px) 
+          rotateY(8deg) 
+          scale(0.9)
+        `,
+        opacity: 0.7 + Math.min(0.3, translateX / 500),
+        zIndex: 20,
+        transition: isDragging ? 'none' : 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
+        pointerEvents: 'none' as const,
+      };
+    }
+    // Görünmeyen kartlar
+    else {
+      return {
+        transform: 'translateZ(-100px) scale(0.7)',
+        opacity: 0,
+        zIndex: 10,
+        transition: 'all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
+        pointerEvents: 'none' as const,
+      };
+    }
   };
 
-  // Swipe offset hesaplama
-  const getSwipeOffset = () => {
-    if (touchStartX === null || touchCurrentX === null) return 0;
-    return (touchCurrentX - touchStartX) * 0.5;
-  };
-
-  // Yıldız render
+  // Helper fonksiyonlar
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center gap-2">
@@ -315,7 +302,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     );
   };
 
-  // Avatar baş harfleri
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -325,7 +311,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       .slice(0, 2);
   };
 
-  // Yorum metnini al
   const getReviewComment = (review: Review) => {
     if (review.translations) {
       const langComment = review.translations[currentLang as keyof typeof review.translations]?.comment;
@@ -334,7 +319,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     return review.comment;
   };
 
-  // Tarih formatla
   const formatDate = (review: Review) => {
     const monthMap: { [key: string]: string } = {
       'ocak': 'january',
@@ -376,7 +360,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // Daire link'ini oluştur
   const getApartmentLink = (apartment: any) => {
     if (apartment.slugs && apartment.slugs[currentLang]) {
       const langPrefix = currentLang === 'tr' ? '' : `/${currentLang}`;
@@ -387,52 +370,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // 3D Stack için kart pozisyon hesaplama
-  const getCardStyle = (positionOffset: number) => {
-    if (!isMobile) return {};
-    
-    const swipeOffset = getSwipeOffset();
-    const baseZ = 40;
-    const spacing = 30;
-    const rotationDegree = 5;
-    const scaleDecrement = 0.1;
-    
-    if (positionOffset === 0) {
-      return {
-        transform: `translate3d(${swipeOffset}px, 0, ${baseZ}px) rotateY(${swipeOffset * 0.05}deg) scale(1)`,
-        opacity: 1,
-        zIndex: 30,
-        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-      };
-    } else if (positionOffset === 1) {
-      return {
-        transform: `translate3d(${35 + swipeOffset * 0.3}px, 0, ${baseZ - spacing}px) rotateY(-${rotationDegree}deg) scale(${1 - scaleDecrement})`,
-        opacity: 0.5,
-        zIndex: 20,
-        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-        pointerEvents: 'none' as const,
-      };
-    } else if (positionOffset === -1) {
-      return {
-        transform: `translate3d(${-35 + swipeOffset * 0.3}px, 0, ${baseZ - spacing}px) rotateY(${rotationDegree}deg) scale(${1 - scaleDecrement})`,
-        opacity: 0.5,
-        zIndex: 20,
-        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-        pointerEvents: 'none' as const,
-      };
-    }
-    
-    return {
-      transform: 'translate3d(0, 0, -100px) scale(0.7)',
-      opacity: 0,
-      zIndex: 10,
-      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-      pointerEvents: 'none' as const,
-    };
-  };
-
   // Review Card Component
-  const ReviewCard: React.FC<{ review: Review; positionOffset: number }> = ({ review, positionOffset }) => {
+  const ReviewCard: React.FC<{ review: Review; index: number }> = ({ review, index }) => {
     if (!review) return null;
 
     return (
@@ -444,11 +383,11 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         `}
         style={isMobile ? {
           transformStyle: 'preserve-3d',
-          ...getCardStyle(positionOffset)
+          ...getCardStyle(index)
         } : undefined}
       >
         {/* Swipe Hint */}
-        {isMobile && positionOffset === 0 && isSwipeHintVisible && reviews.length > 1 && (
+        {isMobile && index === currentIndex && isSwipeHintVisible && reviews.length > 1 && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none animate-pulse">
             <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2 shadow-lg">
               <ChevronLeft size={18} className="text-white" />
@@ -612,14 +551,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     return null;
   }
 
-  const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex < reviews.length - 1;
-
   return (
-    <section 
-      ref={sectionRef}
-      className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]"
-    >
+    <section className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]">
       {/* Yaratıcı Arka Plan Desenleri */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 right-0 h-64 opacity-10">
@@ -662,6 +595,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
           onMouseEnter={() => !isMobile && setIsPaused(true)}
           onMouseLeave={() => !isMobile && setIsPaused(false)}
         >
+          {/* Desktop Navigation Buttons */}
           {reviews.length > 1 && !isMobile && (
             <>
               <button
@@ -691,6 +625,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
             </>
           )}
 
+          {/* Mobile 3D Stack View */}
           {isMobile ? (
             <div 
               ref={containerRef}
@@ -698,18 +633,23 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
               style={{
                 perspective: '1200px',
                 perspectiveOrigin: '50% 50%',
-                touchAction: 'pan-y'
+                transformStyle: 'preserve-3d'
               }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
-              {hasPrev && <ReviewCard review={reviews[currentIndex - 1]} positionOffset={-1} />}
-              <ReviewCard review={reviews[currentIndex]} positionOffset={0} />
-              {hasNext && <ReviewCard review={reviews[currentIndex + 1]} positionOffset={1} />}
+              {reviews.map((review, idx) => (
+                <ReviewCard key={review._id} review={review} index={idx} />
+              ))}
             </div>
           ) : (
-            <ReviewCard review={reviews[currentIndex]} positionOffset={0} />
+            // Desktop View - Tek kart
+            <ReviewCard review={reviews[currentIndex]} index={currentIndex} />
           )}
         </div>
 
+        {/* Dots Indicator */}
         {reviews.length > 1 && (
           <div className="flex justify-center items-center gap-2 md:gap-3 mt-6 md:mt-10">
             {reviews.map((_, idx) => (
@@ -723,20 +663,16 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
                     : 'w-2.5 md:w-2.5 h-2.5 md:h-2.5 bg-[#2d5a4d]/30 hover:bg-[#2d5a4d]/50'}
                   ${isMobile ? 'p-2 -m-2' : ''}
                 `}
-                style={isMobile ? { minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' } : undefined}
+                style={isMobile ? { 
+                  minWidth: '44px', 
+                  minHeight: '44px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center' 
+                } : undefined}
                 aria-label={`${t?.review || 'Yorum'} ${idx + 1}`}
               />
             ))}
-          </div>
-        )}
-
-        {isMobile && reviews.length > 1 && (
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-500">
-              {currentIndex > 0 && '← '}
-              {t?.swipeToNavigate || 'Kaydırarak gezin'}
-              {currentIndex < reviews.length - 1 && ' →'}
-            </p>
           </div>
         )}
       </div>
