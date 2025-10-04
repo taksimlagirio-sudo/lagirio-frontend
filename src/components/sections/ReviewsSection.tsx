@@ -61,11 +61,11 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   
   // Touch/Swipe için state'ler
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwipeHintVisible, setIsSwipeHintVisible] = useState(true);
+  const sectionRef = useRef<HTMLElement>(null);
 
   // Platform Logos
   const platformLogos: { [key: string]: string } = {
@@ -96,6 +96,84 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isSwipeHintVisible, isMobile]);
+
+  // Touch event listeners - Section seviyesinde
+  useEffect(() => {
+    if (!isMobile || !sectionRef.current || reviews.length === 0) return;
+
+    const section = sectionRef.current;
+    let startX: number | null = null;
+    let startY: number | null = null;
+    let currentX: number | null = null;
+    let isHorizontalSwipe = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      currentX = e.touches[0].clientX;
+      isHorizontalSwipe = false;
+      setTouchStartX(startX);
+      setTouchCurrentX(currentX);
+      setIsSwipeHintVisible(false);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (startX === null || startY === null) return;
+      
+      currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      
+      const diffX = Math.abs(currentX - startX);
+      const diffY = Math.abs(currentY - startY);
+      
+      // Yatay swipe mi dikey scroll mü?
+      if (!isHorizontalSwipe && diffX > 10) {
+        if (diffX > diffY) {
+          isHorizontalSwipe = true;
+        }
+      }
+      
+      // Sadece yatay swipe ise scroll'u engelle
+      if (isHorizontalSwipe) {
+        e.preventDefault();
+        setTouchCurrentX(currentX);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (startX === null || currentX === null || !isHorizontalSwipe) {
+        setTouchStartX(null);
+        setTouchCurrentX(null);
+        return;
+      }
+
+      const distance = startX - currentX;
+      const minSwipeDistance = 50;
+      
+      if (distance > minSwipeDistance && currentIndex < reviews.length - 1) {
+        if ('vibrate' in navigator) navigator.vibrate(10);
+        handleNext();
+        resetTimer(8000);
+      } else if (distance < -minSwipeDistance && currentIndex > 0) {
+        if ('vibrate' in navigator) navigator.vibrate(10);
+        handlePrev();
+        resetTimer(8000);
+      }
+
+      setTouchStartX(null);
+      setTouchCurrentX(null);
+    };
+
+    section.addEventListener('touchstart', handleTouchStart, { passive: true });
+    section.addEventListener('touchmove', handleTouchMove, { passive: false });
+    section.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      section.removeEventListener('touchstart', handleTouchStart);
+      section.removeEventListener('touchmove', handleTouchMove);
+      section.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isMobile, currentIndex, reviews.length]);
 
   // Yorumları yükle
   useEffect(() => {
@@ -133,58 +211,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // Haptic feedback
-  const triggerHaptic = () => {
-    if ('vibrate' in navigator && isMobile) {
-      navigator.vibrate(10);
-    }
-  };
-
-  // Touch handlers - ESKİ ÇALIŞAN MANTIK
-  const minSwipeDistance = 50;
-  
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-    setSwipeOffset(0);
-    setIsSwipeHintVisible(false);
-  };
-  
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart) return;
-    
-    const currentTouch = e.targetTouches[0].clientX;
-    const diff = touchStart - currentTouch;
-    
-    // Swipe sırasında görsel feedback (max ±100px)
-    const offset = Math.max(-100, Math.min(100, -diff * 0.5));
-    setSwipeOffset(offset);
-    setTouchEnd(currentTouch);
-  };
-  
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) {
-      setSwipeOffset(0);
-      return;
-    }
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
-    if (isLeftSwipe && reviews.length > 1) {
-      triggerHaptic();
-      handleNext();
-      resetTimer(8000);
-    } else if (isRightSwipe && reviews.length > 1) {
-      triggerHaptic();
-      handlePrev();
-      resetTimer(8000);
-    }
-    
-    setSwipeOffset(0);
-  };
-  
   // Timer'ı sıfırlama fonksiyonu
   const resetTimer = (delay: number = 5000) => {
     if (autoPlayRef.current) {
@@ -198,9 +224,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // Otomatik geçiş
+  // Otomatik geçiş - mobilde daha yavaş
   useEffect(() => {
-    if (!isPaused && reviews.length > 1) {
+    if (!isPaused && reviews.length > 1 && currentIndex < reviews.length - 1) {
       const delay = isMobile ? 7000 : 5000;
       autoPlayRef.current = setTimeout(() => {
         handleNext();
@@ -215,21 +241,21 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   }, [currentIndex, reviews.length, isPaused, isMobile]);
 
   const handleNext = () => {
-    if (isTransitioning || reviews.length === 0) return;
+    if (isTransitioning || reviews.length === 0 || currentIndex >= reviews.length - 1) return;
     
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % reviews.length);
+      setCurrentIndex((prev) => prev + 1);
       setIsTransitioning(false);
     }, 300);
   };
 
   const handlePrev = () => {
-    if (isTransitioning || reviews.length === 0) return;
+    if (isTransitioning || reviews.length === 0 || currentIndex <= 0) return;
     
     setIsTransitioning(true);
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
+      setCurrentIndex((prev) => prev - 1);
       setIsTransitioning(false);
     }, 300);
   };
@@ -237,7 +263,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   const handleDotClick = (index: number) => {
     if (isTransitioning || index === currentIndex) return;
     
-    if (isMobile) triggerHaptic();
+    if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
     
     setIsTransitioning(true);
     setTimeout(() => {
@@ -247,50 +273,10 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }, 300);
   };
 
-  // 3D Stack için kart pozisyon hesaplama
-  const getCardStyle = (offset: number) => {
-    if (!isMobile) return {};
-    
-    const baseZ = 40;
-    const spacing = 25;
-    const rotationDegree = 4;
-    const scaleDecrement = 0.08;
-    
-    if (offset === 0) {
-      // Aktif kart
-      return {
-        transform: `translate3d(${swipeOffset}px, 0, ${baseZ}px) rotateY(${swipeOffset * 0.05}deg) scale(1)`,
-        opacity: 1,
-        zIndex: 30,
-        transition: swipeOffset === 0 ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-        pointerEvents: 'auto' as const,
-      };
-    } else if (offset === 1) {
-      // Sağdaki kart
-      return {
-        transform: `translate3d(${30 + swipeOffset * 0.2}px, 0, ${baseZ - spacing}px) rotateY(-${rotationDegree}deg) scale(${1 - scaleDecrement})`,
-        opacity: 0.5,
-        zIndex: 20,
-        transition: swipeOffset === 0 ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-        pointerEvents: 'none' as const,
-      };
-    } else if (offset === -1) {
-      // Soldaki kart
-      return {
-        transform: `translate3d(${-30 + swipeOffset * 0.2}px, 0, ${baseZ - spacing}px) rotateY(${rotationDegree}deg) scale(${1 - scaleDecrement})`,
-        opacity: 0.5,
-        zIndex: 20,
-        transition: swipeOffset === 0 ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-        pointerEvents: 'none' as const,
-      };
-    }
-    
-    return {
-      transform: 'translate3d(0, 0, -100px) scale(0.7)',
-      opacity: 0,
-      zIndex: 10,
-      pointerEvents: 'none' as const,
-    };
+  // Swipe offset hesaplama
+  const getSwipeOffset = () => {
+    if (touchStartX === null || touchCurrentX === null) return 0;
+    return (touchCurrentX - touchStartX) * 0.5;
   };
 
   // Yıldız render
@@ -385,8 +371,53 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
+  // 3D Stack için kart pozisyon hesaplama
+  const getCardStyle = (positionOffset: number) => {
+    if (!isMobile) return {};
+    
+    const swipeOffset = getSwipeOffset();
+    const baseZ = 40;
+    const spacing = 30;
+    const rotationDegree = 5;
+    const scaleDecrement = 0.1;
+    
+    if (positionOffset === 0) {
+      return {
+        transform: `translate3d(${swipeOffset}px, 0, ${baseZ}px) rotateY(${swipeOffset * 0.05}deg) scale(1)`,
+        opacity: 1,
+        zIndex: 30,
+        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        pointerEvents: 'auto' as const,
+      };
+    } else if (positionOffset === 1) {
+      return {
+        transform: `translate3d(${35 + swipeOffset * 0.3}px, 0, ${baseZ - spacing}px) rotateY(-${rotationDegree}deg) scale(${1 - scaleDecrement})`,
+        opacity: 0.5,
+        zIndex: 20,
+        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        pointerEvents: 'none' as const,
+      };
+    } else if (positionOffset === -1) {
+      return {
+        transform: `translate3d(${-35 + swipeOffset * 0.3}px, 0, ${baseZ - spacing}px) rotateY(${rotationDegree}deg) scale(${1 - scaleDecrement})`,
+        opacity: 0.5,
+        zIndex: 20,
+        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        pointerEvents: 'none' as const,
+      };
+    }
+    
+    return {
+      transform: 'translate3d(0, 0, -100px) scale(0.7)',
+      opacity: 0,
+      zIndex: 10,
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+      pointerEvents: 'none' as const,
+    };
+  };
+
   // Review Card Component
-  const ReviewCard: React.FC<{ review: Review; offset: number }> = ({ review, offset }) => {
+  const ReviewCard: React.FC<{ review: Review; positionOffset: number }> = ({ review, positionOffset }) => {
     if (!review) return null;
 
     return (
@@ -398,9 +429,20 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         `}
         style={isMobile ? {
           transformStyle: 'preserve-3d',
-          ...getCardStyle(offset)
+          ...getCardStyle(positionOffset)
         } : undefined}
       >
+        {/* Swipe Hint */}
+        {isMobile && positionOffset === 0 && isSwipeHintVisible && reviews.length > 1 && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none animate-pulse">
+            <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2 shadow-lg">
+              <ChevronLeft size={18} className="text-white" />
+              <span className="text-white text-sm font-medium">Kaydır</span>
+              <ChevronRight size={18} className="text-white" />
+            </div>
+          </div>
+        )}
+
         {/* Arka Plan Görsel */}
         <div className="absolute inset-0">
           {review.apartment?.images?.[0] ? (
@@ -421,6 +463,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         {/* İçerik */}
         <div className="relative z-10 h-full flex items-center">
           <div className="w-full md:w-2/3 lg:w-7/12 p-4 sm:p-6 md:p-10 lg:p-12">
+            {/* Yorum Metni */}
             <div className="mb-5 sm:mb-6 md:mb-8">
               <Quote className="text-[#ff9800]/70 mb-2 sm:mb-3 md:mb-4" size={isMobile ? 24 : 36} />
               <blockquote>
@@ -430,6 +473,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
               </blockquote>
             </div>
 
+            {/* Müşteri Bilgileri ve Rating */}
             <div className="space-y-3 sm:space-y-4 md:space-y-6">
               <div>
                 {renderStars(review.rating || 5)}
@@ -553,11 +597,15 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     return null;
   }
 
-  const prevIndex = (currentIndex - 1 + reviews.length) % reviews.length;
-  const nextIndex = (currentIndex + 1) % reviews.length;
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < reviews.length - 1;
 
   return (
-    <section className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]">
+    <section 
+      ref={sectionRef}
+      className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]"
+    >
+      {/* Yaratıcı Arka Plan Desenleri */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 right-0 h-64 opacity-10">
           <svg viewBox="0 0 1200 200" className="absolute inset-0 w-full h-full">
@@ -603,20 +651,24 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
             <>
               <button
                 onClick={handlePrev}
-                className="absolute -left-4 md:-left-14 top-1/2 -translate-y-1/2 z-30
+                disabled={currentIndex === 0}
+                className={`absolute -left-4 md:-left-14 top-1/2 -translate-y-1/2 z-30
                          bg-white shadow-xl rounded-full p-3 md:p-4
                          transition-all hover:scale-110 hover:shadow-2xl hover:bg-[#ff9800] group
-                         hidden md:flex items-center justify-center"
+                         hidden md:flex items-center justify-center
+                         ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 aria-label={t?.previousReview || 'Önceki yorum'}
               >
                 <ChevronLeft size={22} className="text-[#2d5a4d] group-hover:text-white transition-colors" />
               </button>
               <button
                 onClick={handleNext}
-                className="absolute -right-4 md:-right-14 top-1/2 -translate-y-1/2 z-30
+                disabled={currentIndex === reviews.length - 1}
+                className={`absolute -right-4 md:-right-14 top-1/2 -translate-y-1/2 z-30
                          bg-white shadow-xl rounded-full p-3 md:p-4
                          transition-all hover:scale-110 hover:shadow-2xl hover:bg-[#ff9800] group
-                         hidden md:flex items-center justify-center"
+                         hidden md:flex items-center justify-center
+                         ${currentIndex === reviews.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 aria-label={t?.nextReview || 'Sonraki yorum'}
               >
                 <ChevronRight size={22} className="text-[#2d5a4d] group-hover:text-white transition-colors" />
@@ -624,35 +676,20 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
             </>
           )}
 
-          {/* 3D Container - SWIPE EVENTS BURAYA */}
           {isMobile ? (
             <div 
-              className="relative h-[350px] sm:h-[400px]"
+              className="reviews-3d-container relative h-[350px] sm:h-[400px]"  // ← class ekle
               style={{
                 perspective: '1200px',
                 perspectiveOrigin: '50% 50%'
               }}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
             >
-              {/* Swipe Hint */}
-              {isSwipeHintVisible && reviews.length > 1 && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none animate-pulse">
-                  <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2 shadow-lg">
-                    <ChevronLeft size={18} className="text-white" />
-                    <span className="text-white text-sm font-medium">Kaydır</span>
-                    <ChevronRight size={18} className="text-white" />
-                  </div>
-                </div>
-              )}
-              
-              <ReviewCard review={reviews[prevIndex]} offset={-1} />
-              <ReviewCard review={reviews[currentIndex]} offset={0} />
-              <ReviewCard review={reviews[nextIndex]} offset={1} />
+              {hasPrev && <ReviewCard review={reviews[currentIndex - 1]} positionOffset={-1} />}
+              <ReviewCard review={reviews[currentIndex]} positionOffset={0} />
+              {hasNext && <ReviewCard review={reviews[currentIndex + 1]} positionOffset={1} />}
             </div>
           ) : (
-            <ReviewCard review={reviews[currentIndex]} offset={0} />
+            <ReviewCard review={reviews[currentIndex]} positionOffset={0} />
           )}
         </div>
 
@@ -679,7 +716,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         {isMobile && reviews.length > 1 && (
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-500">
-              ← {t?.swipeToNavigate || 'Kaydırarak gezin'} →
+              {currentIndex > 0 && '← '}
+              {t?.swipeToNavigate || 'Kaydırarak gezin'}
+              {currentIndex < reviews.length - 1 && ' →'}
             </p>
           </div>
         )}
