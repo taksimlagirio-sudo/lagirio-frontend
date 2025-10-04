@@ -61,10 +61,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   
   // Touch/Swipe için state'ler
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwipeHintVisible, setIsSwipeHintVisible] = useState(true);
 
   // Platform Logos
@@ -140,35 +139,28 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     }
   };
 
-  // Touch handlers
+  // Touch handlers - Container seviyesinde
   const minSwipeDistance = 50;
   
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-    setSwipeOffset(0);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchCurrentX(e.touches[0].clientX);
     setIsSwipeHintVisible(false);
   };
   
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart) return;
-    
-    const currentTouch = e.targetTouches[0].clientX;
-    const diff = touchStart - currentTouch;
-    
-    // Swipe sırasında görsel feedback (max ±100px)
-    const offset = Math.max(-100, Math.min(100, -diff * 0.5));
-    setSwipeOffset(offset);
-    setTouchEnd(currentTouch);
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    setTouchCurrentX(e.touches[0].clientX);
   };
   
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) {
-      setSwipeOffset(0);
+  const handleTouchEnd = () => {
+    if (touchStartX === null || touchCurrentX === null) {
+      setTouchStartX(null);
+      setTouchCurrentX(null);
       return;
     }
     
-    const distance = touchStart - touchEnd;
+    const distance = touchStartX - touchCurrentX;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
     
@@ -182,7 +174,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       resetTimer(8000);
     }
     
-    setSwipeOffset(0);
+    setTouchStartX(null);
+    setTouchCurrentX(null);
   };
   
   // Timer'ı sıfırlama fonksiyonu
@@ -245,6 +238,12 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
       setIsTransitioning(false);
       resetTimer(isMobile ? 8000 : 5000);
     }, 300);
+  };
+
+  // Swipe offset hesaplama
+  const getSwipeOffset = () => {
+    if (touchStartX === null || touchCurrentX === null) return 0;
+    return (touchCurrentX - touchStartX) * 0.5; // %50 resistance
   };
 
   // Yıldız render
@@ -340,71 +339,58 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   };
 
   // 3D Stack için kart pozisyon hesaplama
-  const getCardStyle = (offset: number) => {
+  const getCardStyle = (positionOffset: number) => {
     if (!isMobile) return {};
     
-    const baseZ = 60;
-    const spacing = 40;
-    const rotationDegree = 8;
-    const scaleDecrement = 0.08;
+    const swipeOffset = getSwipeOffset();
+    const baseZ = 40;
+    const spacing = 30;
+    const rotationDegree = 5;
+    const scaleDecrement = 0.1;
     
-    if (offset === 0) {
-      // Aktif kart
+    // Swipe sırasında tüm stack kaydırılır
+    const adjustedOffset = positionOffset;
+    
+    if (adjustedOffset === 0) {
+      // Merkez kart (aktif)
       return {
-        transform: `translate3d(${swipeOffset}px, 0, ${baseZ}px) rotateY(${swipeOffset * 0.1}deg) scale(1)`,
+        transform: `translate3d(${swipeOffset}px, 0, ${baseZ}px) rotateY(${swipeOffset * 0.05}deg) scale(1)`,
         opacity: 1,
         zIndex: 30,
-        transition: swipeOffset === 0 ? 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        pointerEvents: 'auto' as const,
       };
-    } else if (offset === 1) {
-      // Sağdaki kart
+    } else if (adjustedOffset === 1) {
+      // Sağdaki kart (sonraki)
       return {
-        transform: `translate3d(40px, 0, ${baseZ - spacing}px) rotateY(-${rotationDegree}deg) scale(${1 - scaleDecrement})`,
-        opacity: 0.6,
+        transform: `translate3d(${35 + swipeOffset * 0.3}px, 0, ${baseZ - spacing}px) rotateY(-${rotationDegree}deg) scale(${1 - scaleDecrement})`,
+        opacity: 0.5,
         zIndex: 20,
-        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
         pointerEvents: 'none' as const,
       };
-    } else if (offset === -1) {
-      // Soldaki kart
+    } else if (adjustedOffset === -1) {
+      // Soldaki kart (önceki)
       return {
-        transform: `translate3d(-40px, 0, ${baseZ - spacing}px) rotateY(${rotationDegree}deg) scale(${1 - scaleDecrement})`,
-        opacity: 0.6,
+        transform: `translate3d(${-35 + swipeOffset * 0.3}px, 0, ${baseZ - spacing}px) rotateY(${rotationDegree}deg) scale(${1 - scaleDecrement})`,
+        opacity: 0.5,
         zIndex: 20,
-        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        pointerEvents: 'none' as const,
-      };
-    } else {
-      // Diğer kartlar (gizli)
-      return {
-        transform: `translate3d(${offset * 60}px, 0, ${baseZ - spacing * 2}px) scale(${1 - scaleDecrement * 2})`,
-        opacity: 0,
-        zIndex: 10,
-        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: touchStartX === null ? 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
         pointerEvents: 'none' as const,
       };
     }
-  };
-
-  // Görünür kartları hesapla
-  const getVisibleReviews = () => {
-    if (!isMobile || reviews.length === 0) {
-      return [{ review: reviews[currentIndex], offset: 0 }];
-    }
-
-    const visible = [];
-    const prevIndex = (currentIndex - 1 + reviews.length) % reviews.length;
-    const nextIndex = (currentIndex + 1) % reviews.length;
-
-    visible.push({ review: reviews[prevIndex], offset: -1 });
-    visible.push({ review: reviews[currentIndex], offset: 0 });
-    visible.push({ review: reviews[nextIndex], offset: 1 });
-
-    return visible;
+    
+    return {
+      transform: 'translate3d(0, 0, -100px) scale(0.7)',
+      opacity: 0,
+      zIndex: 10,
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+      pointerEvents: 'none' as const,
+    };
   };
 
   // Review Card Component
-  const ReviewCard: React.FC<{ review: Review; offset: number }> = ({ review, offset }) => {
+  const ReviewCard: React.FC<{ review: Review; positionOffset: number }> = ({ review, positionOffset }) => {
     if (!review) return null;
 
     return (
@@ -412,21 +398,15 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         className={`
           ${isMobile ? 'absolute inset-x-4' : 'relative'}
           rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl
-          transition-all duration-500 transform
-          ${isTransitioning && offset === 0 ? 'opacity-0 scale-95' : ''}
           h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px]
-          ${isMobile && offset === 0 ? 'cursor-grab active:cursor-grabbing' : ''}
         `}
         style={isMobile ? {
           transformStyle: 'preserve-3d',
-          ...getCardStyle(offset)
+          ...getCardStyle(positionOffset)
         } : undefined}
-        onTouchStart={isMobile && offset === 0 ? onTouchStart : undefined}
-        onTouchMove={isMobile && offset === 0 ? onTouchMove : undefined}
-        onTouchEnd={isMobile && offset === 0 ? onTouchEnd : undefined}
       >
         {/* Swipe Hint - Sadece aktif kartta */}
-        {isMobile && offset === 0 && isSwipeHintVisible && reviews.length > 1 && (
+        {isMobile && positionOffset === 0 && isSwipeHintVisible && reviews.length > 1 && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none animate-pulse">
             <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2 shadow-lg">
               <ChevronLeft size={18} className="text-white" />
@@ -600,7 +580,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     return null;
   }
 
-  const visibleReviews = getVisibleReviews();
+  // 3 kart hesapla: önceki, şimdiki, sonraki
+  const prevIndex = (currentIndex - 1 + reviews.length) % reviews.length;
+  const nextIndex = (currentIndex + 1) % reviews.length;
 
   return (
     <section className="relative py-12 md:py-20 overflow-hidden bg-gradient-to-br from-[#faf5f0] via-white to-[#fff8f0]">
@@ -674,21 +656,24 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
             </>
           )}
 
-          {/* 3D Perspective Container - Sadece mobilde */}
+          {/* 3D Perspective Container */}
           {isMobile ? (
             <div 
-              className="relative h-[350px] sm:h-[400px]"
+              className="relative h-[350px] sm:h-[400px] select-none"
               style={{
                 perspective: '1200px',
                 perspectiveOrigin: '50% 50%'
               }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
-              {visibleReviews.map(({ review, offset }) => (
-                <ReviewCard key={review._id} review={review} offset={offset} />
-              ))}
+              <ReviewCard review={reviews[prevIndex]} positionOffset={-1} />
+              <ReviewCard review={reviews[currentIndex]} positionOffset={0} />
+              <ReviewCard review={reviews[nextIndex]} positionOffset={1} />
             </div>
           ) : (
-            <ReviewCard review={reviews[currentIndex]} offset={0} />
+            <ReviewCard review={reviews[currentIndex]} positionOffset={0} />
           )}
         </div>
 
