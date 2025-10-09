@@ -544,7 +544,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none animate-pulse">
                         <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 flex items-center gap-2 shadow-lg">
                           <ChevronLeft size={18} className="text-white" />
-                          <span className="text-white text-sm font-medium">Kaydır</span>
+                          <span className="text-white text-sm font-medium">{t.swipe || 'Kaydır'}</span>
                           <ChevronRight size={18} className="text-white" />
                         </div>
                       </div>

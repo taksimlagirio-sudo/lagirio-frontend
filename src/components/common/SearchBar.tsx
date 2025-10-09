@@ -324,26 +324,26 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 </div>
               </div>
 
-              {/* Çocuk yaş grupları - aynı kalacak */}
+              {/* Çocuk yaş grupları - translation'larla düzeltilmiş */}
               {localFilters.children > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-center mb-3">
                     <Baby size={16} className="text-gray-600 mr-2" />
                     <p className="text-sm font-medium text-gray-700">
-                      Çocuk yaşlarını belirtin
+                      {t.specifyChildrenAges || 'Çocuk yaşlarını belirtin'}
                     </p>
                   </div>
                   
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                     <p className="text-xs text-blue-800">
-                      Toplam: {childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2} / {localFilters.children} çocuk
+                      {t.total || 'Toplam'}: {childrenAgeGroups.above7 + childrenAgeGroups.between2And7 + childrenAgeGroups.under2} / {localFilters.children} {t.children || 'çocuk'}
                     </p>
                   </div>
                   
                   {/* 7 Yaş ve Üstü */}
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <span className="text-sm text-gray-700 font-medium">7-18 Yaş</span>
+                      <span className="text-sm text-gray-700 font-medium">{t.age7to18 || '7-18 Yaş'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
@@ -367,7 +367,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   {/* 2-7 Yaş Arası */}
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <span className="text-sm text-gray-700 font-medium">2-7 Yaş</span>
+                      <span className="text-sm text-gray-700 font-medium">{t.age2to7 || '2-7 Yaş'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
@@ -391,7 +391,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   {/* 0-2 Yaş (Bebek) */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-sm text-gray-700 font-medium">0-2 Yaş</span>
+                      <span className="text-sm text-gray-700 font-medium">{t.age0to2 || '0-2 Yaş'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
@@ -417,7 +417,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
                       <p className="text-xs text-red-600 flex items-center">
                         <span className="mr-1">⚠️</span>
-                        Lütfen tüm çocukların yaş gruplarını belirtin
+                        {t.pleaseSpecifyAllChildrenAges || 'Lütfen tüm çocukların yaş gruplarını belirtin'}
                       </p>
                     </div>
                   )}
@@ -429,7 +429,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   onClick={() => setShowGuestsDropdown(false)}
                   className="w-full text-sm bg-[#0a2e23] text-white px-4 py-2 rounded-lg hover:bg-[#0f4a3a]"
                 >
-                  Tamam
+                  {t.done || 'Tamam'}
                 </button>
               </div>
             </div>

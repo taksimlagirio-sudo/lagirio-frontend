@@ -560,6 +560,12 @@ export const translations = {
     age7AndAbove: "7 yaş ve üzeri",
     age2To7: "2-7 yaş arası",
     ageUnder2: "2 yaş altı (Bebek)",
+    specifyChildrenAges: 'Çocuk yaşlarını belirtin',
+    total: 'Toplam',
+    age7to18: '7-18 Yaş',
+    age2to7: '2-7 Yaş', 
+    age0to2: '0-2 Yaş',
+    pleaseSpecifyAllChildrenAges: 'Lütfen tüm çocukların yaş gruplarını belirtin',
     
     // Form placeholder'ları
     namePlaceholder: "Adınız Soyadınız",
@@ -582,9 +588,18 @@ export const translations = {
     // Fiyat detayları
     tourFee: "Tur Ücreti",
     extraGuestFee: "Ekstra Misafir Ücreti",
-    total: "Toplam",
     taxesIncluded: "Vergiler dahil",
     calculatingPrice: "Fiyat hesaplanıyor...",
+    guestReviews: 'Misafir Yorumları',
+    reviewsSubtitle: 'Değerli misafirlerimizin deneyimleri',
+    previousReview: 'Önceki yorum',
+    nextReview: 'Sonraki yorum',
+    review: 'Yorum',
+    swipe: 'Kaydır',
+    swipeToNavigate: 'Kaydırarak gezin',
+    accommodation: 'Konaklama',
+    errorLoading: 'Yorumlar yüklenirken bir hata oluştu.',
+    tryAgain: 'Tekrar Dene',
     
     // Hata mesajları
     dateNotAvailableForCheckin: "Bu tarih check-in için uygun değil",
@@ -777,7 +792,6 @@ export const translations = {
   // Cancellation Modal
   cancelReservationTitle: "Rezervasyon İptali",
   reservationNo: "Rezervasyon No",
-  accommodation: "Konaklama",
   refundAmount: "İade Tutarı",
   noRefundAvailable: "Bu rezervasyon için iade alınamaz",
   cancelWarning: "Bu işlem geri alınamaz. Onayladıktan sonra rezervasyonunuz iptal edilecektir.",
@@ -1365,6 +1379,12 @@ export const translations = {
     age7AndAbove: "7 years and above",
     age2To7: "2-7 years old",
     ageUnder2: "Under 2 years (Baby)",
+    specifyChildrenAges: 'Specify children ages',
+    total: 'Total',
+    age7to18: '7-18 Years',
+    age2to7: '2-7 Years',
+    age0to2: '0-2 Years',
+    pleaseSpecifyAllChildrenAges: 'Please specify all children ages',
     
     // Form placeholder'ları
     namePlaceholder: "Your Full Name",
@@ -1387,7 +1407,6 @@ export const translations = {
     // Fiyat detayları
     tourFee: "Tour Fee",
     extraGuestFee: "Extra Guest Fee",
-    total: "Total",
     taxesIncluded: "Taxes included",
     calculatingPrice: "Calculating price...",
     
@@ -1585,6 +1604,15 @@ export const translations = {
     cancelReservationTitle: "Cancel Reservation",
     reservationNo: "Reservation No",
     accommodation: "Accommodation",
+    guestReviews: 'Guest Reviews',
+    reviewsSubtitle: 'Experiences from our valued guests',
+    previousReview: 'Previous review',
+    nextReview: 'Next review',
+    review: 'Review',
+    swipe: 'Swipe',
+    swipeToNavigate: 'Swipe to navigate',
+    errorLoading: 'An error occurred while loading reviews.',
+    tryAgain: 'Try Again',
     refundAmount: "Refund Amount",
     noRefundAvailable: "No refund available for this reservation",
     cancelWarning: "This action cannot be undone. Once confirmed, your reservation will be cancelled.",
@@ -2159,7 +2187,14 @@ export const translations = {
     age7AndAbove: "7 سنوات فما فوق",
     age2To7: "2-7 سنوات",
     ageUnder2: "أقل من سنتين (رضيع)",
-    
+    // AR
+    specifyChildrenAges: 'حدد أعمار الأطفال',
+    total: 'المجموع',
+    age7to18: '7-18 سنة',
+    age2to7: '2-7 سنوات',
+    age0to2: '0-2 سنة',
+    pleaseSpecifyAllChildrenAges: 'يرجى تحديد أعمار جميع الأطفال',
+        
     // Form placeholder'ları
     namePlaceholder: "اسمك الكامل",
     specialNote: "ملاحظة خاصة",
@@ -2181,7 +2216,6 @@ export const translations = {
     // Fiyat detayları
     tourFee: "رسوم الجولة",
     extraGuestFee: "رسوم الضيف الإضافي",
-    total: "المجموع",
     taxesIncluded: "الضرائب مشمولة",
     calculatingPrice: "جاري حساب السعر...",
     
@@ -2384,6 +2418,15 @@ export const translations = {
   cancelReservationTitle: "إلغاء الحجز",
   reservationNo: "رقم الحجز",
   accommodation: "الإقامة",
+  guestReviews: 'آراء النزلاء',
+    reviewsSubtitle: 'تجارب ضيوفنا الكرام',
+    previousReview: 'المراجعة السابقة',
+    nextReview: 'المراجعة التالية',
+    review: 'مراجعة',
+    swipe: 'اسحب',
+    swipeToNavigate: 'اسحب للتنقل',
+    errorLoading: 'حدث خطأ أثناء تحميل المراجعات.',
+    tryAgain: 'حاول مرة أخرى',
   refundAmount: "مبلغ الاسترداد",
   noRefundAvailable: "لا يوجد استرداد متاح لهذا الحجز",
   cancelWarning: "هذا الإجراء لا يمكن التراجع عنه. بمجرد التأكيد، سيتم إلغاء حجزك.",
@@ -2959,6 +3002,12 @@ export const translations = {
     age7AndAbove: "7 лет и старше",
     age2To7: "2-7 лет",
     ageUnder2: "До 2 лет (младенец)",
+    specifyChildrenAges: 'Укажите возраст детей',
+    total: 'Всего',
+    age7to18: '7-18 лет',
+    age2to7: '2-7 лет',
+    age0to2: '0-2 года',
+    pleaseSpecifyAllChildrenAges: 'Пожалуйста, укажите возраст всех детей',
     
     // Form placeholder'ları
     namePlaceholder: "Ваше полное имя",
@@ -2981,7 +3030,6 @@ export const translations = {
     // Fiyat detayları
     tourFee: "Стоимость тура",
     extraGuestFee: "Плата за дополнительного гостя",
-    total: "Итого",
     taxesIncluded: "Налоги включены",
     calculatingPrice: "Расчет цены...",
     
@@ -3183,6 +3231,15 @@ export const translations = {
   cancelReservationTitle: "Отмена бронирования",
   reservationNo: "Номер брони",
   accommodation: "Размещение",
+      guestReviews: 'Отзывы гостей',
+    reviewsSubtitle: 'Опыт наших уважаемых гостей',
+    previousReview: 'Предыдущий отзыв',
+    nextReview: 'Следующий отзыв',
+    review: 'Отзыв',
+    swipe: 'Проведите',
+    swipeToNavigate: 'Проведите для навигации',
+    errorLoading: 'Произошла ошибка при загрузке отзывов.',
+    tryAgain: 'Попробуйте снова',
   refundAmount: "Сумма возврата",
   noRefundAvailable: "Возврат за это бронирование недоступен",
   cancelWarning: "Это действие нельзя отменить. После подтверждения ваше бронирование будет отменено.",

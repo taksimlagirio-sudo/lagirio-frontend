@@ -138,10 +138,12 @@
 }
 
 /* Mobil için Spring Physics Animasyon - Vendor prefix düzeltmesi */
+/* ReviewsSection 3D Stack için */
 @media (max-width: 767px) {
-  .spring-animation {
-    -webkit-transition: -webkit-transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  .reviews-3d-container {
+    touch-action: pan-x !important;
+    -webkit-user-select: none;
+    user-select: none;
   }
 }
 
